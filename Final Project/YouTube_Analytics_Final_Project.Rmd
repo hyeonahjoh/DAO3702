@@ -1,6 +1,6 @@
 ---
 title: "What Makes a YouTube Video Go Viral? A Global Analysis"
-subtitle: "DBA3702: Descriptive Analytics with R - Final Project"
+subtitle: "DBA3702: Descriptive Analytics with R"
 author: "weRready"
 date: "`r Sys.Date()`"
 output:
@@ -159,7 +159,7 @@ kable(country_counts,
 
 ## 2.1 Data Cleaning Pipeline
 
-A `dplyr`/`tidyr` pipeline was used to further clean and transform the combined global dataset. First, any duplicates within each country were removed such that a video only appears once in the dataset. Then, the publish and trending dates were parsed for easier use in downstream analyses. Moving on, six calculated fields were added: the total engagement count, the engagement rate, ratio of like count to total like and dislike count, ratio of comment count to view count, like count per view, and number of days from publish to trend.
+A `dplyr`/`tidyr` pipeline was used to further clean and transform the combined global dataset. First, any duplicates within each country were removed such that a video only appears once in the dataset. Then, the publish and trending dates were parsed for easier use in downstream analyses. Moving on, six calculated fields were added: the total engagement count, the engagement rate, ratio of like count to total like and dislike count, ratio of comment count to view count, like count per view, and number of days from publish to trend. Finally, rows with errors, zero views, missing categories, or invalid dates were removed.
 
 ```{r data-wrangling, echo=FALSE}
 # Clean and transform the combined dataset
@@ -236,8 +236,17 @@ country_summary <- youtube_clean %>%
 kable(country_summary,
       col.names = c("Code", "Country", "Region", "Videos", "Channels",
                     "Avg Views (M)", "Avg Likes (K)", "Engagement %", "Like Ratio %"),
-      caption = "Summary Statistics by Country") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+      caption = "Summary Statistics by Country",
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE,
+    font_size = 8, 
+    latex_options = c("scale_down", "hold_position")
+  ) %>%
+  column_spec(1, width = "0.8cm") %>% 
+  column_spec(2, width = "1.8cm") %>%  
+  column_spec(3, width = "2cm") 
 ```
 
 ------------------------------------------------------------------------
@@ -435,12 +444,10 @@ To wrap up this section, the global correlation analysis between numeric variabl
 
 ## 4.1 ANOVA: Engagement Differences Across Countries
 
-**Research Question**: Do engagement rates differ significantly across countries?
+A one way Analysis of Variance (ANOVA), which compares average engagement across groups, was used to investigate whether engagement rates differ significantly across countries. The hypotheses are:
 
-**Hypotheses**:
-
--   H0 (Null): Mean engagement rates are equal across all countries
--   H1 (Alternative): At least one country has a different mean engagement rate
+- H0 (Null): Mean engagement rates are equal across all countries
+- H1 (Alternative): At least one country has a different mean engagement rate
 
 ```{r anova-countries, echo=FALSE}
 # ANOVA for engagement across countries
@@ -456,6 +463,8 @@ eta_squared <- ss_between / ss_total
 cat("\nEffect Size (Eta-squared):", round(eta_squared, 4), "\n")
 cat("Country explains", round(eta_squared * 100, 2), "% of variance in engagement\n")
 ```
+
+The results show a very large F statistic and a p value below 0.001, so differences are statistically significant. However, with a large dataset, this is expected. The more important result is the effect size. Eta squared is about 0.065, meaning country explains roughly 6.5 percent of variation in engagement. So overall, engagement does differ across countries, but the practical impact is modest.
 
 ## 4.2 Post-hoc Analysis: Pairwise Country Comparisons
 
@@ -624,9 +633,9 @@ ggplot(loadings_long, aes(x = Component, y = Variable, fill = Loading)) +
 
 **Component Interpretation**:
 
--   **PC1 (Popularity)**: High loadings on views, likes, comments - overall video scale
--   **PC2 (Engagement Quality)**: Engagement rate and like ratio - audience reception
--   **PC3 (Metadata)**: Title characteristics and tag count
+- **PC1 (Popularity)**: High loadings on views, likes, comments - overall video scale
+- **PC2 (Engagement Quality)**: Engagement rate and like ratio - audience reception
+- **PC3 (Metadata)**: Title characteristics and tag count
 
 ## 5.5 PCA by Country
 
@@ -856,10 +865,10 @@ Residual diagnostics show **mild non-linearity and heteroscedasticity**, with so
 
 ## 6.8 Key Regression Insights
 
--   **`log_comments` and `log_likes`** have a strong positive relationship with views — engagement begets reach.
--   **`publish_hour`** is negatively associated with views — videos uploaded later in the day tend to receive fewer views.
--   **Category effects vary across countries**, suggesting regional content preferences.
--   **Film & Animation, Music, and Sports** consistently outperform the Entertainment baseline in views globally.
+- **`log_comments` and `log_likes`** have a strong positive relationship with views — engagement begets reach.
+- **`publish_hour`** is negatively associated with views — videos uploaded later in the day tend to receive fewer views.
+- **Category effects vary across countries**, suggesting regional content preferences.
+- **Film & Animation, Music, and Sports** consistently outperform the Entertainment baseline in views globally.
 
 ------------------------------------------------------------------------
 
@@ -867,7 +876,7 @@ Residual diagnostics show **mild non-linearity and heteroscedasticity**, with so
 
 In Section 4, PCA was run on all 8 numeric variables (including `log_views`), producing 8 orthogonal components. Since PCA is a lossless rotation of the original variable space, regressing `log_views` on all 8 PCs is mathematically equivalent to a full OLS regression — it perfectly reconstructs `log_views` (R² = 1), giving a natural ceiling.
 
-The key question is: how much of that perfect fit survives when the number of PCs is dropped to 2? The 2-PC cutoff follows the Kaiser rule from *Section 5* (eigenvalue \> 1). The R² gap between the two models is the cost of dimensionality reduction.
+The key question is: how much of that perfect fit survives when the number of PCs is dropped to 2? The 4-PC cutoff follows the Kaiser rule from *Section 5* (eigenvalue \> 1). The R² gap between the two models is the cost of dimensionality reduction.
 
 ### 7.1 Building the PC Regression Dataset
 
@@ -921,7 +930,7 @@ Approximately **10.9% of R² is lost** when moving from 8 PCs to 2 PCs.
 
 ### 7.4 Progressive R² Across All PC Cutoffs
 
-```{r pc-reg-progressive, fig.cap="R-squared of log_views regressed on PC1 through PCk, for k equals 1 to 9", echo=FALSE}
+```{r pc-reg-progressive, fig.cap="R-squared of log_views regressed on PC1 through PCk, for k equals 1 to 8", echo=FALSE}
 progressive_r2 <- data.frame(
   k  = 1:8,
   r2 = sapply(1:8, function(k) {
@@ -1002,9 +1011,9 @@ While PCA effectively compresses the dataset’s variance,the graph from *Sectio
 
 In this section, predictive models estimating `log_views` for unseen videos were built, using a train/test split, to verify findings from earlier sections. Two configurations were evaluated:
 
--   **M1** (base continuous predictors: logarithm of like count, logarithm of comment count, days to trend, and publish hour)
+- **M1** (base continuous predictors: logarithm of like count, logarithm of comment count, days to trend, and publish hour)
 
--   **M2** (base + category dummies: logarithm of like count, logarithm of comment count, days to trend, publish hour, and category)
+- **M2** (base + category dummies: logarithm of like count, logarithm of comment count, days to trend, publish hour, and category)
 
 ## 8.2 Train / Test Split
 
@@ -1352,8 +1361,17 @@ country_summary <- youtube_clean %>%
 kable(country_summary,
       col.names = c("Code", "Country", "Region", "Videos", "Channels",
                     "Avg Views (M)", "Avg Likes (K)", "Engagement %", "Like Ratio %"),
-      caption = "Summary Statistics by Country") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+      caption = "Summary Statistics by Country",
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE,
+    font_size = 8, 
+    latex_options = c("scale_down", "hold_position")
+  ) %>%
+  column_spec(1, width = "0.8cm") %>% 
+  column_spec(2, width = "1.8cm") %>%  
+  column_spec(3, width = "2cm") 
 
 
 
