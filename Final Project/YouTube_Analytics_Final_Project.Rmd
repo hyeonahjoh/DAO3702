@@ -159,7 +159,7 @@ kable(country_counts,
 
 ## 2.1 Data Cleaning Pipeline
 
-A `dplyr`/`tidyr` pipeline was used to further clean and transform the combined global dataset. First, any duplicates within each country were removed such that a video only appears once in the dataset. Then, the publish and trending dates were parsed for easier use in downstream analyses. Moving on, six calculated fields were added: the total engagement count, the engagement rate, ratio of like count to total like and dislike count, ratio of comment count to view count, like count per view, and number of days from publish to trend. Finally, rows with errors, zero views, missing categories, or invalid dates were removed.
+A `dplyr`/`tidyr` pipeline was used to further clean and transform the combined global dataset. First, any duplicates within each country were removed such that a video only appears once in the dataset. Then, the publish and trending dates were parsed for easier use in downstream analyses. Moving on, six calculated fields were added: the total engagement count, the engagement rate, ratio of like count to total like and dislike count, ratio of comment count to view count, like count per view, and number of days from publish to trend.
 
 ```{r data-wrangling, echo=FALSE}
 # Clean and transform the combined dataset
@@ -448,6 +448,9 @@ A one way Analysis of Variance (ANOVA), which compares average engagement across
 
 - H0 (Null): Mean engagement rates are equal across all countries
 - H1 (Alternative): At least one country has a different mean engagement rate
+
+-   H0 (Null): Mean engagement rates are equal across all countries
+-   H1 (Alternative): At least one country has a different mean engagement rate
 
 ```{r anova-countries, echo=FALSE}
 # ANOVA for engagement across countries
@@ -845,7 +848,7 @@ ggplot(cat_coefs, aes(x = reorder(term, estimate),
     title    = "Category Coefficients (vs Entertainment Baseline)",
     subtitle = "Positive = more views than Entertainment; negative = fewer",
     x        = NULL,
-    y        = "Coefficient (\u0394 log views)",
+    y        = "Coefficient (change in log views)",
     colour   = NULL
   ) +
   theme_minimal(base_size = 12)
@@ -876,7 +879,7 @@ Residual diagnostics show **mild non-linearity and heteroscedasticity**, with so
 
 In Section 4, PCA was run on all 8 numeric variables (including `log_views`), producing 8 orthogonal components. Since PCA is a lossless rotation of the original variable space, regressing `log_views` on all 8 PCs is mathematically equivalent to a full OLS regression — it perfectly reconstructs `log_views` (R² = 1), giving a natural ceiling.
 
-The key question is: how much of that perfect fit survives when the number of PCs is dropped to 2? The 4-PC cutoff follows the Kaiser rule from *Section 5* (eigenvalue \> 1). The R² gap between the two models is the cost of dimensionality reduction.
+The key question is: how much of that perfect fit survives when the number of PCs is dropped to 2? The 2-PC cutoff follows the Kaiser rule from *Section 5* (eigenvalue \> 1). The R² gap between the two models is the cost of dimensionality reduction.
 
 ### 7.1 Building the PC Regression Dataset
 
@@ -930,7 +933,7 @@ Approximately **10.9% of R² is lost** when moving from 8 PCs to 2 PCs.
 
 ### 7.4 Progressive R² Across All PC Cutoffs
 
-```{r pc-reg-progressive, fig.cap="R-squared of log_views regressed on PC1 through PCk, for k equals 1 to 8", echo=FALSE}
+```{r pc-reg-progressive, fig.cap="R-squared of log views regressed on PC1 through PC$k$, for k equals 1 to 9", echo=FALSE}
 progressive_r2 <- data.frame(
   k  = 1:8,
   r2 = sapply(1:8, function(k) {
@@ -963,7 +966,7 @@ ggplot(progressive_r2, aes(x = k, y = r2)) +
 
 ### 7.5 Cumulative Variance Explained vs R²
 
-```{r pc-reg-cumvar, fig.cap="Cumulative PCA variance explained vs predictive R-squared for log_views", echo=FALSE}
+```{r pc-reg-cumvar, fig.cap="Cumulative PCA variance explained vs predictive R-squared for log views", echo=FALSE}
 n_pcs <- length(pca_result$sdev)
 
 cumvar_df <- data.frame(
@@ -1009,7 +1012,7 @@ While PCA effectively compresses the dataset’s variance,the graph from *Sectio
 
 ## 8.1 Overview and Objective
 
-In this section, predictive models estimating `log_views` for unseen videos were built, using a train/test split, to verify findings from earlier sections. Two configurations were evaluated:
+In this section, predictive models estimating `log views` for unseen videos were built, using a train/test split, to verify findings from earlier sections. Two configurations were evaluated:
 
 - **M1** (base continuous predictors: logarithm of like count, logarithm of comment count, days to trend, and publish hour)
 
@@ -1856,7 +1859,7 @@ ggplot(cat_coefs, aes(x = reorder(term, estimate),
     title    = "Category Coefficients (vs Entertainment Baseline)",
     subtitle = "Positive = more views than Entertainment; negative = fewer",
     x        = NULL,
-    y        = "Coefficient (\u0394 log views)",
+    y        = "Coefficient (change in log views)",
     colour   = NULL
   ) +
   theme_minimal(base_size = 12)
