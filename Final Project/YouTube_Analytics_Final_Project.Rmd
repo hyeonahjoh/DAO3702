@@ -1,6 +1,6 @@
 ---
 title: "What Makes a YouTube Video Go Viral? A Global Analysis"
-subtitle: "DBA3702: Descriptive Analytics with R - Final Project"
+subtitle: "DBA3702: Descriptive Analytics with R"
 author: "weRready"
 date: "`r Sys.Date()`"
 output:
@@ -24,7 +24,6 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-
   echo = TRUE,
   warning = FALSE,
   message = FALSE,
@@ -36,7 +35,7 @@ knitr::opts_chunk$set(
 options(tinytex.verbose = TRUE)
 ```
 
-------------------------------------------------------------------------
+\newpage
 
 # Executive Summary
 
@@ -58,8 +57,6 @@ Given the analysis and key findings, some recommendations for aspiring content c
 
 3.  Using the regression and predictive models to support decision-making.
 
-------------------------------------------------------------------------
-
 # 1. Introduction and Problem Statement
 
 ## 1.1 Background and Motivation
@@ -70,7 +67,7 @@ This analysis examines the YouTube Trending Videos Dataset from Kaggle, containi
 
 ## 1.2 Research Questions
 
-To answer the overarching question of what makes a YouTube video go viral, five sub-questions were explored:
+To answer the overarching question of what makes a YouTube video go viral, we explored five sub-questions:
 
 1.  How do video engagement patterns differ across countries?
 2.  Are there significant differences in category preferences across regions?
@@ -100,7 +97,7 @@ library(ggridges)
 set.seed(42)
 ```
 
-As the dataset contained ten different files, one for each country, all CSV and JSON files were loaded in `R`, which were then combined using `left_join` on `category_id` (see *11. Appendix* for full data loading and combining process). The outputs below shows a high-level summary of the combined dataset.
+As the dataset contained ten different files, one for each country, we loaded all CSV and JSON files `R`, which were then combined using `left_join` on `category_id` (see *Appendix 11.1* for full data loading and combining process). The output below shows a high-level summary of the combined dataset.
 
 ```{r load-all-data, echo=FALSE}
 # Define country codes and full names
@@ -133,11 +130,6 @@ load_country_data <- function(country_code) {
 
 # Load all countries' data
 all_videos <- map_dfr(countries$code, load_country_data)
-
-# Display combined dataset info
-cat("Total observations:", nrow(all_videos), "\n")
-cat("Countries:", n_distinct(all_videos$country_code), "\n")
-cat("Variables:", ncol(all_videos), "\n")
 ```
 
 ```{r show-country-counts, echo=FALSE}
@@ -153,13 +145,11 @@ kable(country_counts,
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 ```
 
-------------------------------------------------------------------------
-
 # 2. Data Wrangling
 
 ## 2.1 Data Cleaning Pipeline
 
-A `dplyr`/`tidyr` pipeline was used to further clean and transform the combined global dataset. First, any duplicates within each country were removed such that a video only appears once in the dataset. Then, the publish and trending dates were parsed for easier use in downstream analyses. Moving on, six calculated fields were added: the total engagement count, the engagement rate, ratio of like count to total like and dislike count, ratio of comment count to view count, like count per view, and number of days from publish to trend.
+We used a `dplyr`/`tidyr` pipeline to further clean and transform the combined global dataset. First, we removed any duplicates within each country such that a video only appears once in the dataset. Then, we parsed the publish and trending dates for easier use in downstream analyses. Moving on, we added six calculated fields: the total engagement count, the engagement rate, ratio of like count to total like and dislike count, ratio of comment count to view count, like count per view, and number of days from publish to trend. Finally, we removed rows with errors, zero views, missing categories, or invalid dates.
 
 ```{r data-wrangling, echo=FALSE}
 # Clean and transform the combined dataset
@@ -236,11 +226,18 @@ country_summary <- youtube_clean %>%
 kable(country_summary,
       col.names = c("Code", "Country", "Region", "Videos", "Channels",
                     "Avg Views (M)", "Avg Likes (K)", "Engagement %", "Like Ratio %"),
-      caption = "Summary Statistics by Country") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+      caption = "Summary Statistics by Country",
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE,
+    font_size = 8, 
+    latex_options = c("scale_down", "hold_position")
+  ) %>%
+  column_spec(1, width = "0.8cm") %>% 
+  column_spec(2, width = "1.8cm") %>%  
+  column_spec(3, width = "2cm") 
 ```
-
-------------------------------------------------------------------------
 
 # 3. Descriptive Analytics and Visualization
 
@@ -274,31 +271,7 @@ kable(global_summary,
 
 The numerical summary of the data given reveals two key insights. First, the mean is greater than the median, which indicates that the distribution is right-skewed. This implies that very few videos go extremely viral, pulling up the mean number of views. Second, the median days to trend is one day, suggesting that videos on the trending list often catch momentum quickly. The second point is further investigated in *Section 3.5*.
 
-## 3.2 View Count (Log Scale) by Country
-
-```{r country-view-comparison, fig.height=7, echo=FALSE}
-p_summary <- ggplot(youtube_clean, aes(x = log(views), fill = country)) +
-  geom_histogram(bins = 60, colour = "white", alpha = 0.85) +
-  scale_x_continuous(
-        breaks = log(c(1000, 10000, 100000, 1000000, 100000000)),
-        labels = c("1K", "10K", "100K", "1M", "100M")) +
-  scale_fill_viridis_d(option = "C") +
-  facet_wrap(~ country) +
-  labs(
-    title    = "Distribution of Trending Video Views by Country (Log Scale)",
-    x        = "Views",
-    y        = "Count"
-  ) +
-  theme_minimal(base_size = 13) +
-  theme(legend.position = "none",
-        axis.text.x = element_text(angle = 45, hjust = 1))
-
-print(p_summary)
-```
-
-As the distribution is highly skewed, it was difficult to observe trends in view count using original values. Therefore, a logarithmic scale was used to normalize the distributions. Across most countries, the peak of the histogram is around 100,000 views, suggesting that a YouTuber should aim to generate approximately 100,000 views on average for their videos to appear on the trending list. Moreover, there are outliers with one million views and above, confirming findings from *Section 3.1* that there are several videos that went extremely viral.
-
-## 3.3 Category Distribution of Trending Videos by Country
+## 3.2 Category Distribution of Trending Videos by Country
 
 ```{r country-engagement-comparison, fig.height=7, echo=FALSE}
 p_cat <- youtube_clean %>%
@@ -327,7 +300,7 @@ print(p_cat)
 
 Videos in the entertainment category appeared the most often on the trending list across all countries except Russia, where it ranked second after people and blogs. This suggests that entertainment videos are popular among audiences across the globe. Notably, sports appeared particularly strong in France, Japan, and Mexico, music in Great Britain, and news and politics in South Korea. The impact of video category on the success of a YouTube video is further investigated in *Section 6.2*.
 
-## 3.4 Engagement Rate by Country
+## 3.3 Engagement Rate by Country
 
 ```{r country-like-ratio, fig.height=5, echo=FALSE}
 p_eng <- youtube_clean %>%
@@ -352,7 +325,7 @@ print(p_eng)
 
 Mexico, Germany, and France have the highest engagement rates on average, implying that they have the most interactive audiences. Notably, audiences of the United States and Great Britain have lower engagement rates in general, but also show a greater spread. This suggests that while audiences of the two countries tend to interact less with videos relative to other countries, it is also difficult to reach conclusions about or predict viewer behavior due to high levels of variance. Whether engagement levels differ significantly across countries is further investigated in *Section 4.1*.
 
-## 3.5 Days to Trend by Country
+## 3.4 Days to Trend by Country
 
 ```{r days-to-trend, fig.height=5, echo=FALSE}
 p_days <- youtube_clean %>%
@@ -381,7 +354,7 @@ print(p_days)
 
 Diving deeper into initial findings from *Section 3.1*, the histograms of days from publish to trending show that the majority of videos make their way onto the trending list within five days of publish across all countries. However, there are some exceptions to this pattern, such as the United States, where some videos managed to trend through a slow-burn momentum of five to eight days, or Great Britain, where the right tail extends beyond fifteen days. Whether days to trend influences the success of a video is further examined in *Section 5*.
 
-## 3.6 Correlation Analysis
+## 3.5 Correlation Analysis
 
 ```{r correlation-global, fig.height=6, echo=FALSE}
 cor_vars <- c("views", "likes", "dislikes", "comment_count",
@@ -429,20 +402,16 @@ print(p_cor)
 
 To wrap up this section, the global correlation analysis between numeric variables revealed that most variables have near-zero correlation, suggesting independence. However, there are two notable patterns. First, view count is positively correlated with likes and comment counts, as expected: the higher the view count, the higher the number of engagement metrics. Second, view and comment counts are positively correlated with dislikes, conveying that controversial or polarizing content is associated with greater engagement.
 
-------------------------------------------------------------------------
-
 # 4. Statistical Inference
 
 ## 4.1 ANOVA: Engagement Differences Across Countries
 
-**Research Question**: Do engagement rates differ significantly across countries?
-
-**Hypotheses**:
+We used a one way Analysis of Variance (ANOVA), which compares average engagement across groups, to investigate whether engagement rates differ significantly across countries. The hypotheses are:
 
 -   H0 (Null): Mean engagement rates are equal across all countries
 -   H1 (Alternative): At least one country has a different mean engagement rate
 
-```{r anova-countries, echo=FALSE}
+```{r anova-countries, include=FALSE}
 # ANOVA for engagement across countries
 anova_country <- aov(engagement_rate ~ country_code, data = youtube_clean)
 anova_summary <- summary(anova_country)
@@ -456,6 +425,8 @@ eta_squared <- ss_between / ss_total
 cat("\nEffect Size (Eta-squared):", round(eta_squared, 4), "\n")
 cat("Country explains", round(eta_squared * 100, 2), "% of variance in engagement\n")
 ```
+
+The results show a very large $F$-statistic and a $p$-value below 0.001, hence differences are statistically significant. However, with a large dataset, this is expected, thus we moved on to investigate the effect size. $\eta$-squared is about 0.065, meaning country explains roughly 6.5 percent of variation in engagement. Therefore, overall, engagement does differ across countries, but the practical impact is modest (*see Appendix 11.2 for complete ANOVA output*).
 
 ## 4.2 Post-hoc Analysis: Pairwise Country Comparisons
 
@@ -473,6 +444,8 @@ kable(tukey_df, digits = 4,
       caption = "Top 10 Significant Pairwise Country Differences (Tukey HSD)") %>%
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 ```
+
+To identify where these differences occur, we use a Tukey post hoc test, which compares each pair of countries. We find that many country pairs are statistically significant. For example, Russia and Mexico show higher engagement relative to Canada, while India and Japan tend to be lower. Hence, there are clear differences across countries, but again, these should be interpreted together with the earlier result that country explains only a small portion of overall variation. This suggests that country differences exist, but are not the main driver on their own.
 
 ## 4.3 Chi-Square: Category Preferences by Region
 
@@ -520,9 +493,7 @@ top_cats %>%
   )
 ```
 
-**Interpretation**: The chi-square test (p \< 0.001) confirms that category preferences differ significantly across regions. The stacked bar chart visualizes these differences — Music dominates in Latin America, while Entertainment has a stronger presence in North America and Europe. Gaming shows relatively consistent popularity across all regions.
-
-------------------------------------------------------------------------
+To understand why engagement differs, we test whether content types vary across regions using a chi square test. The result is statistically significant, meaning category distribution differs across regions. From the chart, we see that regions tend to feature different mixes of content. For example, Europe has more Sports and Music, while Asia is more concentrated in Entertainment. This suggests that part of the engagement differences across countries may be due to differences in what content is trending.
 
 # 5. Dimensionality Reduction
 
@@ -662,8 +633,6 @@ ggplot() +
   theme(plot.title = element_text(face = "bold"))
 ```
 
-------------------------------------------------------------------------
-
 # 6. Regression Modeling
 
 ## 6.1 Preparation for Regression
@@ -689,7 +658,7 @@ reg_df <- youtube_clean %>%
 
 ## 6.2 Model 1: Base Model (Global Continuous Predictors Only)
 
-```{r model1, echo=FALSE}
+```{r model1, include=FALSE}
 m1 <- lm(log_views ~ log_likes + log_comments + days_to_trend + publish_hour,
          data = reg_df)
 
@@ -698,13 +667,11 @@ summary(m1)
 
 The first model analyses views and its relationship with log likes, log comments, days to trend and publish hour. The **positive relationships** are likes and comments which is expected. However, **days to trend** is also positive which means videos that take longer to trend perform better, which is unexpected according to previous findings.
 
-There is also a **weak negative relationship** for publishing hour, which indicates videos uploaded later tend to perform worse.
-
-For model interpretation, the p value is less than 0.05 which means it is **statistically significant**. The adjusted r square value means **67%** of the data is explained by this model.
+There is also a **weak negative relationship** for publishing hour, which indicates videos uploaded later tend to perform worse. For model interpretation, the p value is less than 0.05 which means it is **statistically significant**. The adjusted r square value means **67%** of the data is explained by this model (see *Appendix 11.3 for complete model output*).
 
 ## 6.3 Model 2: Base + Category Dummies
 
-```{r model2, echo=FALSE}
+```{r model2, include=FALSE}
 m2 <- lm(log_views ~ log_likes + log_comments + days_to_trend +
            publish_hour + category,
          data = reg_df)
@@ -714,15 +681,11 @@ summary(m2)
 
 For the second model, we **included categories**. Our **dummy variable is Entertainment** because it performs well across all countries, which makes interpretations less variable when comparing globally, compared to other categories.
 
-Generally from the output we can see **most categories do not perform as well** as entertainment due to the negative values.
-
-For model interpretation, the p value is also smaller than 0.05 which means it is **statistically significant**. The Adjusted r square value **increased slightly to 69%** here, which means categories increases model explanation of variance in the data.
+Generally from the output we can see **most categories do not perform as well** as entertainment due to the negative values. For model interpretation, the p value is also smaller than 0.05 which means it is **statistically significant**. The Adjusted r square value **increased slightly to 69%** here, which means categories increases model explanation of variance in the data (see *Appendix 11.4 for complete model output*).
 
 ## 6.4 Model 3: Region-Stratified Regression
 
-Model 3 performs region-stratified regression to examine how predictors affect `log_views` within each country separately.
-
-```{r model3-fit, echo=FALSE}
+```{r model3-fit, include=FALSE}
 m3 <- lapply(unique(reg_df$region), function(r) {
   lm(log_views ~ log_likes + log_comments + days_to_trend +
        publish_hour + category,
@@ -732,6 +695,8 @@ m3 <- lapply(unique(reg_df$region), function(r) {
 })
 names(m3) <- unique(reg_df$region)
 ```
+
+Model 3 performs region-stratified regression to examine how predictors affect `log_views` within each country separately (*see* *Appendix 11.5 for complete model output*).
 
 ### North America Region Summary (Sample)
 
@@ -798,11 +763,11 @@ Looking at model fit for each country, the **best fits** are US followed by Grea
 
 ### ANOVA: Model 1 vs Model 2
 
-```{r anova-m1-m2, echo=FALSE}
+```{r anova-m1-m2, include=FALSE}
 anova(m1, m2)
 ```
 
-We also did ANOVA analysis for model 1 and 2 which asks if adding categories explains more variance than without. The F value shows that the **model’s error decreased**, and with a p-value is close to 0, it shows us this is statistically significant.
+We also did ANOVA analysis for model 1 and 2 which asks if adding categories explains more variance than without. The F value shows that the **model’s error decreased**, and with a p-value is close to 0, it shows us this is statistically significant (*see Appendix 11.6 for complete ANOVA output*).
 
 ## 6.6 Category Coefficient Plot (Model 2)
 
@@ -861,8 +826,6 @@ Residual diagnostics show **mild non-linearity and heteroscedasticity**, with so
 -   **Category effects vary across countries**, suggesting regional content preferences.
 -   **Film & Animation, Music, and Sports** consistently outperform the Entertainment baseline in views globally.
 
-------------------------------------------------------------------------
-
 # 7. PCA-Based Regression
 
 In Section 4, PCA was run on all 8 numeric variables (including `log_views`), producing 8 orthogonal components. Since PCA is a lossless rotation of the original variable space, regressing `log_views` on all 8 PCs is mathematically equivalent to a full OLS regression — it perfectly reconstructs `log_views` (R² = 1), giving a natural ceiling.
@@ -883,8 +846,7 @@ cat("Rows in PC regression dataset:", nrow(pc_scores), "\n")
 
 ### 7.2 Fitting the Two Models
 
-```{r pc-reg-models, echo=FALSE}
-# Full model: all 9 PCs (lossless rotation — R² = 1 by design)
+```{r pc-reg-models, include=FALSE}
 # Full model: all 8 PCs (lossless rotation — R² = 1 by design)
 m_pc8 <- lm(log_views ~ PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8,
             data = pc_scores)
@@ -896,6 +858,8 @@ m_pc2 <- lm(log_views ~ PC1 + PC2,
 summary(m_pc8)
 summary(m_pc2)
 ```
+
+We fit two linear regression models, one with all 8 PCs and another with 2 PCs selected in *Section 5* (*see Appendix 11.5 for complete model output*).
 
 ### 7.3 Model Comparison Table
 
@@ -917,11 +881,11 @@ knitr::kable(
 )
 ```
 
-Approximately **10.9% of R² is lost** when moving from 8 PCs to 2 PCs.
+Approximately 10.9% of R² is lost when moving from 8 PCs to 2 PCs.
 
 ### 7.4 Progressive R² Across All PC Cutoffs
 
-```{r pc-reg-progressive, fig.cap="R-squared of log views regressed on PC1 through PC$k$, for k equals 1 to 9", echo=FALSE}
+```{r pc-reg-progressive, fig.cap="R-squared of log views regressed on PC1 through PC$k$, for k equals 1 to 8", echo=FALSE}
 progressive_r2 <- data.frame(
   k  = 1:8,
   r2 = sapply(1:8, function(k) {
@@ -954,7 +918,7 @@ ggplot(progressive_r2, aes(x = k, y = r2)) +
 
 ### 7.5 Cumulative Variance Explained vs R²
 
-```{r pc-reg-cumvar, fig.cap="Cumulative PCA variance explained vs predictive R-squared for log views", echo=FALSE}
+```{r pc-reg-cumvar, fig.cap="Cumulative PCA variance explained vs predictive R-squared for log_views", echo=FALSE}
 n_pcs <- length(pca_result$sdev)
 
 cumvar_df <- data.frame(
@@ -993,8 +957,6 @@ ggplot(cumvar_long, aes(x = k, y = value, colour = metric, group = metric)) +
 ```
 
 While PCA effectively compresses the dataset’s variance,the graph from *Section 7.5* demonstrates a clear divergence between feature importance and predictive utility; the first two components capture the majority of the variance but fail to translate that into significant R^2^ gains. Furthermore, the non-monotonic increases in R^2^ seen *Section 7.4* suggest that viewership is driven by specific, lower-variance signals rather than the broad popularity metrics captured by PC1.
-
-------------------------------------------------------------------------
 
 # 8. Predictive Model Extension
 
@@ -1145,23 +1107,17 @@ The histogram of prediction errors, known as the residual distribution, shows a 
 
 ## 8.8 Limitations of the Predictive Model
 
-It should be noted that findings in this section indicate correlation, not necessarily causation. The model predicts views from engagement metrics such as ,likes and comments, which accumulate alongside views. The model therefore reflects a co-occurrence pattern rather than a causal mechanism. A YouTuber cannot manufacture high likes in advance to drive views; the causality likely runs in both directions, with high view counts causing high like counts and vice versa.
+It should be noted that findings in this section indicate correlation, not necessarily causation. The model predicts views from engagement metrics such as likes and comments, which accumulate alongside views. The model therefore reflects a co-occurrence pattern rather than a causal mechanism. A YouTuber cannot manufacture high likes in advance to drive views; the causality likely runs in both directions, with high view counts causing high like counts and vice versa.
 
-Moreover, the dataset may have survival bias, as it only contains videos that successfully made the trending list. Videos that were published but never trended are not included in the dataset, thus the model does have examples of "failed" videos. It cannot identify what distinguishes a trending video from a non-trending one, but only what distinguishes trending videos from each other. This limits its usefulness as a pre-publication decision tool. Furthermore, YouTube's recommendation algorithm, creator ecosystem, and audience behavior are constantly changing. Coefficient magnitudes and category rankings should be treated as directional rather than precise current-day estimates.
-
-Finally, there are key drivers of view count that are absent from the dataset, such as thumbnail quality, creator subscriber count, external promotions, algorithm timing, and trending topic alignment. The 69% Test R² from M2 is respectable for behavioral data, but the remaining 31% of unexplained variance may be attributed to these unmeasured factors rather than model misspecification.
-
-------------------------------------------------------------------------
+Moreover, the dataset may have survival bias, as it only contains videos that successfully made the trending list. Videos that were published but never trended are not included in the dataset, thus the model cannot identify what distinguishes a trending video from a non-trending one. Furthermore, YouTube's recommendation algorithm, creator ecosystem, and audience behavior are constantly changing. Finally, there are key drivers of view count that are absent from the dataset, such as thumbnail quality, creator subscriber count, external promotions, algorithm timing, and trending topic alignment. These factors limit the model's usefulness as a pre-publication decision tool.
 
 # 9. Feedback Incorporation
 
 During the Phase 1 presentation, we received two main pieces of feedback: to extend the regression analysis into a possible predictive tool, and to examine how much model fit is lost when using dimensionality reduction for regression.
 
-To address the first point, we added Section 8, which develops an initial predictive model extension using an 80/20 train/test split. The category model performed better on the test set, suggesting that content category adds predictive value beyond engagement and timing variables. However, because likes and comments are post-publication variables that grow together with views, we interpret the model as a prototype rather than a fully deployable pre-publication prediction tool.
+To address the first point, we added *Section 8*, which develops an initial predictive model extension using an 80/20 train/test split. The category model performed better on the test set, suggesting that content category adds predictive value beyond engagement and timing variables. However, because likes and comments are post-publication variables that grow together with views, we interpret the model as a prototype rather than a fully deployable pre-publication prediction tool.
 
-To address the second point, we added Section 7, which uses principal components as regression inputs. We compared a reduced 4-PC model with a 9-PC model to assess the trade-off between simplicity and explanatory power. The reduced model lost about 0.0908 in R², or 9.08 percentage points, showing that dimensionality reduction preserves most of the model fit while discarding some information.
-
-------------------------------------------------------------------------
+To address the second point, we added *Section 7*, which uses principal components as regression inputs. We compared a reduced 2-PC model with a 8-PC model to assess the trade-off between simplicity and explanatory power. The reduced model lost about 0.1084 in R², or 10.84 percentage points, showing that dimensionality reduction preserves most of the model fit while discarding some information.
 
 # 10. Key Findings and Discussion
 
@@ -1180,16 +1136,15 @@ This study examines what drives YouTube video virality across markets. Overall, 
 
 ## 10.2 Evaluation of Hypotheses
 
-• Engagement and content factors were strongly supported as key factors associated with performance.\
-• Geographic and regional differences were supported, but with weaker practical influence. • Latent performance dimensions were supported, with PCA identifying key underlying drivers of performance. • Predictive relationships were supported, as the regression models explained a substantial share of variation in outcomes.
+Engagement and content factors were strongly supported as key factors associated with performance. Geographic and regional differences were also supported, but with weaker practical influence. Latent performance dimensions were supported, with PCA identifying key underlying drivers of performance. Finally, predictive relationships were supported, as the regression models explained a substantial share of variation in outcomes.
 
 ## 10.3 Surprising and Non-Intuitive Findings
 
-• Early visibility does not guarantee success: Although many videos trend quickly, timing variables contribute only weakly to performance differences. Early exposure alone is therefore insufficient. • Negative reactions can still increase visibility: Dislikes are positively associated with views and comments, suggesting that controversial or polarising content can also generate attention and engagement.
+The analysis suggests that early visibility does not guarantee success: Although many videos trend quickly, timing variables contribute only weakly to performance differences. Early exposure alone is therefore insufficient. Moreover, negative reactions can still increase visibility: Dislikes are positively associated with views and comments, suggesting that controversial or polarising content can also generate attention and engagement.
 
 ## 10.4 Limitations and Scope
 
-• The analysis identifies correlations rather than causal relationships. • Important factors such as recommendation algorithms and creator reputation are not captured in the dataset. • log_views is used as a proxy for performance and may not capture all aspects of virality. Accordingly, the findings should be interpreted as indicative patterns rather than definitive causal drivers.
+It should be noted that the analysis identifies correlations rather than causal relationships. Important factors such as recommendation algorithms and creator reputation are not captured in the dataset. Furthermore, `log_views` is used as a proxy for performance and may not capture all aspects of virality. Accordingly, the findings should be interpreted as indicative patterns rather than definitive causal drivers.
 
 ## 10.5 Practical Implications and Recommendations
 
@@ -1205,6 +1160,8 @@ This study examines what drives YouTube video virality across markets. Overall, 
 \newpage
 
 # 11. Appendix
+
+## 11.1 Full `R` Script
 
 ```{r appendix, eval=FALSE}
 # 0. Load Libraries
@@ -1260,11 +1217,6 @@ load_country_data <- function(country_code) {
 
 # Load all countries' data
 all_videos <- map_dfr(countries$code, load_country_data)
-
-# Display combined dataset info
-cat("Total observations:", nrow(all_videos), "\n")
-cat("Countries:", n_distinct(all_videos$country_code), "\n")
-cat("Variables:", ncol(all_videos), "\n")
 
 # Show observations per country
 country_counts <- all_videos %>%
@@ -1352,8 +1304,17 @@ country_summary <- youtube_clean %>%
 kable(country_summary,
       col.names = c("Code", "Country", "Region", "Videos", "Channels",
                     "Avg Views (M)", "Avg Likes (K)", "Engagement %", "Like Ratio %"),
-      caption = "Summary Statistics by Country") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+      caption = "Summary Statistics by Country",
+      booktabs = TRUE) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    full_width = FALSE,
+    font_size = 8, 
+    latex_options = c("scale_down", "hold_position")
+  ) %>%
+  column_spec(1, width = "0.8cm") %>% 
+  column_spec(2, width = "1.8cm") %>%  
+  column_spec(3, width = "2cm") 
 
 
 
@@ -1388,29 +1349,7 @@ kable(global_summary,
       caption = "Global Engagement Overview") %>%
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 
-# 3.2 View Count (Log Scale) by Country
-# Build histogram of log-transformed view counts, split by country
-p_summary <- ggplot(youtube_clean, aes(x = log(views), fill = country)) +
-  geom_histogram(bins = 60, colour = "white", alpha = 0.85) +
-  scale_x_continuous(
-        breaks = log(c(1000, 10000, 100000, 1000000, 100000000)),
-        labels = c("1K", "10K", "100K", "1M", "100M")) +
-  scale_fill_viridis_d(option = "C") +
-  # Create one panel per country so distributions can be compared side by side
-  facet_wrap(~ country) +
-  labs(
-    title    = "Distribution of Trending Video Views by Country (Log Scale)",
-    x        = "Views",
-    y        = "Count"
-  ) +
-  theme_minimal(base_size = 13) +
-  theme(legend.position = "none",
-        axis.text.x = element_text(angle = 45, hjust = 1))
-
-# Render the plot
-print(p_summary)
-
-# 3.3 Category Distribution of Trending Videos by Country
+# 3.2 Category Distribution of Trending Videos by Country
 # Count number of trending videos per country-category combination
 p_cat <- youtube_clean %>%
   group_by(country, category_name) %>%
@@ -1437,7 +1376,7 @@ p_cat <- youtube_clean %>%
 
 print(p_cat)
 
-# 3.4 Engagement Rate by Country
+# 3.3 Engagement Rate by Country
 # Remove missing engagement rates and cap at 50% to exclude extreme outliers
 # that would compress the scale and obscure the main distribution
 p_eng <- youtube_clean %>%
@@ -1460,7 +1399,7 @@ p_eng <- youtube_clean %>%
 
 print(p_eng)
 
-# 3.5 Days to Trend by Country
+# 3.4 Days to Trend by Country
 p_days <- youtube_clean %>%
   filter(days_to_trend <= 30) %>%  # Trim to 30 days to focus on typical trending window
   # Order countries by median days to trend
@@ -1486,7 +1425,7 @@ p_days <- youtube_clean %>%
 
 print(p_days)
 
-# 3.6 Global Correlation Analysis
+# 3.5 Global Correlation Analysis
 # Define variables of interest for correlation analysis
 cor_vars <- c("views", "likes", "dislikes", "comment_count",
               "engagement_rate", "days_to_trend",
@@ -2064,4 +2003,74 @@ ggplot(test_df, aes(x = residual)) +
   ) +
   theme_minimal(base_size = 13) +
   theme(plot.title = element_text(face = "bold"))
+```
+
+## 11.2 ANOVA Output for *Section 4.1*
+
+```{r anova-countries-appendix, include=FALSE}
+# ANOVA for engagement across countries
+anova_country <- aov(engagement_rate ~ country_code, data = youtube_clean)
+anova_summary <- summary(anova_country)
+print(anova_summary)
+
+# Effect size
+ss_between <- anova_summary[[1]]$`Sum Sq`[1]
+ss_total <- sum(anova_summary[[1]]$`Sum Sq`)
+eta_squared <- ss_between / ss_total
+
+cat("\nEffect Size (Eta-squared):", round(eta_squared, 4), "\n")
+cat("Country explains", round(eta_squared * 100, 2), "% of variance in engagement\n")
+```
+
+## 11.3 Model Output for *Section 6.2*
+
+```{r model1-appendix, echo=FALSE}
+m1 <- lm(log_views ~ log_likes + log_comments + days_to_trend + publish_hour,
+         data = reg_df)
+
+summary(m1)
+```
+
+## 11.4 Model Output for *Section 6.3*
+
+```{r model2-appendix, echo=FALSE}
+m2 <- lm(log_views ~ log_likes + log_comments + days_to_trend +
+           publish_hour + category,
+         data = reg_df)
+
+summary(m2)
+```
+
+## 11.5 Model Output for *Section 6.4*
+
+```{r model3-appendix, echo=FALSE}
+m3 <- lapply(unique(reg_df$region), function(r) {
+  lm(log_views ~ log_likes + log_comments + days_to_trend +
+       publish_hour + category,
+     data = reg_df %>%
+       filter(region == r) %>%
+       mutate(category = relevel(factor(category_name), ref = "Entertainment")))
+})
+names(m3) <- unique(reg_df$region)
+```
+
+## 11.6 ANOVA Output for *Section 6.5*
+
+```{r anova-m1-m2-appendix, echo=FALSE}
+anova(m1, m2)
+```
+
+## 11.7 Model Output for *Section 7.2*
+
+```{r pc-reg-models-appendix, echo=FALSE}
+# Full model: all 8 PCs (lossless rotation — R² = 1 by design)
+m_pc8 <- lm(log_views ~ PC1 + PC2 + PC3 + PC4 + PC5 + PC6 + PC7 + PC8,
+            data = pc_scores)
+
+# Reduced model: first 2 PCs only (Kaiser rule cutoff)
+m_pc2 <- lm(log_views ~ PC1 + PC2,
+            data = pc_scores)
+
+summary(m_pc8)
+summary(m_pc2)
 ```
