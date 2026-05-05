@@ -95,6 +95,7 @@ library(kableExtra)
 library(broom)
 library(ggridges)
 library(ggrepel)
+library(ggrepel)
 
 set.seed(42)
 ```
@@ -430,7 +431,7 @@ cat("\nEffect Size (Eta-squared):", round(eta_squared, 4), "\n")
 cat("Country explains", round(eta_squared * 100, 2), "% of variance in engagement\n")
 ```
 
-A one-way ANOVA was conducted to test whether engagement rates differ across countries. The result is statistically significant (p \< 0.001), indicating that at least one country differs in mean engagement. However, the effect size is small (η² ≈ 0.065), meaning country explains only about 6.5% of the variation. This suggests that while differences exist, geography has limited practical influence on engagement. Since ANOVA only tells us that at least one country differs, we next use Tukey HSD to identify which country pairs differ (*see Appendix 11.3 for complete ANOVA output*).
+A one-way ANOVA was conducted to test whether engagement rates differ across countries. The result is statistically significant ($p$ \< 0.001), indicating that at least one country differs in mean engagement. However, the effect size is small ($\eta^2$ ≈ 0.065), meaning country explains only about 6.5% of the variation. This suggests that while differences exist, geography has limited practical influence on engagement. Since ANOVA only tells us that at least one country differs, we next used Tukey HSD to identify which country pairs differ (*see Appendix 11.3 for complete ANOVA output*).
 
 ## 4.2 Post-hoc Analysis: Pairwise Country Comparisons
 
@@ -454,9 +455,7 @@ Tukey HSD results show that many country pairs differ significantly. A general p
 -   Higher engagement: Russia, Mexico, France
 -   Lower engagement: India, Japan
 
-These differences are consistent but modest, reinforcing that country-level effects are secondary rather than primary drivers of engagement.
-
-Since country differences are statistically present but practically limited, we next examine whether differences in regional content mix may partly explain these engagement patterns.
+These differences are consistent but modest, reinforcing that country-level effects are secondary rather than primary drivers of engagement. Since country differences are statistically present but practically limited, we next examined whether differences in regional content mix may partly explain these engagement patterns.
 
 ## 4.3 Chi-Square: Category Preferences by Region
 
@@ -504,9 +503,9 @@ top_cats %>%
   )
 ```
 
-A chi-square test was used to examine whether trending video categories differ across regions. The result is statistically significant (p \< 0.001), indicating that category distribution varies by region. Regional patterns are evident: Europe has a higher share of Sports and Music, while Asia is more concentrated in Entertainment. This suggests that engagement differences across countries may partly reflect differences in what content trends, rather than purely differences in audience behaviour.
+A chi-square test was used to examine whether trending video categories differ across regions. The result is statistically significant ($p$ \< 0.001), indicating that category distribution varies by region. Regional patterns are evident: Europe has a higher share of Sports and Music, while Asia is more concentrated in Entertainment. This suggests that engagement differences across countries may partly reflect differences in what content trends, rather than purely differences in audience behaviour.
 
-Overall, our statistical analysis shows that geography matters statistically, but its practical effect is limited. Regional content mix provides a more meaningful explanation for some of the observed engagement differences, which is further examined in the regression analysis in Section 6.
+Overall, our statistical analysis shows that geography matters statistically, but its practical effect is limited. Regional content mix provides a more meaningful explanation for some of the observed engagement differences, which is further examined in the regression analysis in *Section 6*.
 
 # 5. Dimensionality Reduction
 
@@ -560,7 +559,7 @@ kable(var_explained, caption = "PCA Variance Explained") %>%
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 ```
 
-In the PCA biplot, views, likes, dislikes, and comment count all point in similar directions along PC1, meaning popular videos tend to score high on all of these engagement metrics together. Like ratio and engagement rate point in similar directions along PC2, reflecting how positive reactions and active engagement are related to one another. Notably, days to trend and tag count have the shortest arrows, suggesting that timing and metadata have very little impact on how a video performs, in contrast to the pattern found in *Section 3.4*.
+In the PCA biplot, views, likes, dislikes, and comment count all point in similar directions along PC1, which shows that popular videos tend to score high on all of these engagement metrics. Like ratio and engagement rate point in similar directions along PC2, reflecting how positive reactions and active engagement are related to one another. Notably, days to trend and tag count have the shortest arrows, suggesting that timing and metadata have very little impact on how a video performs, in contrast to the pattern found in *Section 3.4*.
 
 ```{r pca-biplot, echo=FALSE}
 # Extract loadings for PC1 and PC2
@@ -796,7 +795,11 @@ region_fit <- bind_rows(
 region_fit %>%
   select(region, r.squared, adj.r.squared, statistic, p.value) %>%
   mutate(p.value = format(p.value, scientific = TRUE)) %>%
-  knitr::kable(digits = 4, caption = "Model 3 Fit Statistics by Region")
+  knitr::kable(digits = 4, caption = "Model 3 Fit Statistics by Region") %>%
+  kable_styling(
+    latex_options = c("striped", "hold_position"),
+    font_size = 8
+  )
 ```
 
 Looking at model fit for each region, the best fit is in North America, while the worst fit is in Asia.
@@ -1804,7 +1807,11 @@ region_fit <- bind_rows(
 region_fit %>%
   select(region, r.squared, adj.r.squared, statistic, p.value) %>%
   mutate(p.value = format(p.value, scientific = TRUE)) %>%
-  knitr::kable(digits = 4, caption = "Model 3 Fit Statistics by Region")
+  knitr::kable(digits = 4, caption = "Model 3 Fit Statistics by Region") %>%
+  kable_styling(
+    latex_options = c("striped", "hold_position"),
+    font_size = 8
+  )
 
 # ANOVA: M1 vs M2
 anova(m1, m2)
@@ -2118,7 +2125,10 @@ m3 <- lapply(unique(reg_df$region), function(r) {
        mutate(category = relevel(factor(category_name), ref = "Entertainment")))
 })
 
+
 names(m3) <- unique(reg_df$region)
+
+summary(m3[["North America"]])
 
 summary(m3[["North America"]])
 ```
