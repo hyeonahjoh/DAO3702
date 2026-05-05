@@ -427,7 +427,7 @@ cat("\nEffect Size (Eta-squared):", round(eta_squared, 4), "\n")
 cat("Country explains", round(eta_squared * 100, 2), "% of variance in engagement\n")
 ```
 
-A one-way ANOVA was conducted to test whether engagement rates differ across countries. The result is statistically significant (p < 0.001), indicating that at least one country differs in mean engagement. However, the effect size is small (η² ≈ 0.065), meaning country explains only about 6.5% of the variation. This suggests that while differences exist, geography has limited practical influence on engagement. Since ANOVA only tells us that at least one country differs, we next use Tukey HSD to identify which country pairs differ.
+A one-way ANOVA was conducted to test whether engagement rates differ across countries. The result is statistically significant (p \< 0.001), indicating that at least one country differs in mean engagement. However, the effect size is small (η² ≈ 0.065), meaning country explains only about 6.5% of the variation. This suggests that while differences exist, geography has limited practical influence on engagement. Since ANOVA only tells us that at least one country differs, we next use Tukey HSD to identify which country pairs differ.
 
 ## 4.2 Post-hoc Analysis: Pairwise Country Comparisons
 
@@ -446,10 +446,7 @@ kable(tukey_df, digits = 4,
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 ```
 
-Tukey HSD results show that many country pairs differ significantly. A general pattern emerges:
-• Higher engagement: Russia, Mexico, France
-• Lower engagement: India, Japan
-These differences are consistent but modest, reinforcing that country-level effects are secondary rather than primary drivers of engagement.Since country differences are statistically present but practically limited, we next examine whether differences in regional content mix may partly explain these engagement patterns.
+Tukey HSD results show that many country pairs differ significantly. A general pattern emerges: • Higher engagement: Russia, Mexico, France • Lower engagement: India, Japan These differences are consistent but modest, reinforcing that country-level effects are secondary rather than primary drivers of engagement.Since country differences are statistically present but practically limited, we next examine whether differences in regional content mix may partly explain these engagement patterns.
 
 ## 4.3 Chi-Square: Category Preferences by Region
 
@@ -497,7 +494,7 @@ top_cats %>%
   )
 ```
 
-A chi-square test was used to examine whether trending video categories differ across regions. The result is statistically significant (p < 0.001), indicating that category distribution varies by region. Regional patterns are evident: Europe has a higher share of Sports and Music, while Asia is more concentrated in Entertainment. This suggests that engagement differences across countries may partly reflect differences in what content trends, rather than purely differences in audience behaviour.
+A chi-square test was used to examine whether trending video categories differ across regions. The result is statistically significant (p \< 0.001), indicating that category distribution varies by region. Regional patterns are evident: Europe has a higher share of Sports and Music, while Asia is more concentrated in Entertainment. This suggests that engagement differences across countries may partly reflect differences in what content trends, rather than purely differences in audience behaviour.
 
 Overall, our statistical analysis shows that geography matters statistically, but its practical effect is limited. Regional content mix provides a more meaningful explanation for some of the observed engagement differences, which is further examined in the regression analysis in Section 6.
 
@@ -986,7 +983,7 @@ While PCA effectively compresses the dataset’s variance,the graph from *Sectio
 
 ## 8.1 Overview and Objective
 
-In this section, predictive models estimating `log views` for unseen videos were built, using a train/test split, to verify findings from earlier sections. Two configurations were evaluated:
+In this section, predictive models estimating log(views) for unseen videos were built, using a train/test split, to verify findings from earlier sections. Two configurations were evaluated:
 
 -   **M1** (base continuous predictors: logarithm of like count, logarithm of comment count, days to trend, and publish hour)
 
