@@ -67,7 +67,7 @@ This analysis examines the YouTube Trending Videos Dataset from Kaggle, containi
 
 ## 1.2 Research Questions
 
-To answer the overarching question of what makes a YouTube video go viral, we explored five sub-questions:
+To answer the overarching question of what makes a YouTube video go viral, we explored four sub-questions:
 
 1.  How do video engagement patterns differ across countries?
 2.  Are there significant differences in category preferences across regions?
@@ -303,15 +303,15 @@ Videos in the entertainment category appeared the most often on the trending lis
 
 ## 3.3 Engagement Rate by Country
 
-```{r country-like-ratio, fig.height=5, echo=FALSE}
+```{r country-engagement-ratio, fig.height=5, echo=FALSE}
 p_eng <- youtube_clean %>%
-  filter(!is.na(engagement_rate), engagement_rate < 0.5) %>%
+  filter(!is.na(engagement_rate), engagement_rate < 50) %>%
   ggplot(aes(x = reorder(country, engagement_rate, median),
              y = engagement_rate,
              fill = country)) +
   geom_boxplot(outlier.size = 0.4, outlier.alpha = 0.3, show.legend = FALSE) +
   scale_fill_viridis_d(option = "C") +
-  scale_y_continuous(labels = percent_format(accuracy = 0.1)) +
+  scale_y_continuous(labels = function(x) paste0(x, "%")) +
   coord_flip() +
   labs(
     title    = "Engagement Rate by Country",
@@ -324,7 +324,7 @@ p_eng <- youtube_clean %>%
 print(p_eng)
 ```
 
-Mexico, Germany, and France have the highest engagement rates on average, implying that they have the most interactive audiences. Notably, audiences of the United States and Great Britain have lower engagement rates in general, but also show a greater spread. This suggests that while audiences of the two countries tend to interact less with videos relative to other countries, it is also difficult to reach conclusions about or predict viewer behavior due to high levels of variance. Whether engagement levels differ significantly across countries is further investigated in *Section 4.1*.
+Mexico, Germany, and France record the highest average engagement rates, suggesting stronger interaction relative to views. Notably, audiences of the United States and Great Britain have lower engagement rates in general, but also show a greater spread. This suggests that while audiences of the two countries tend to interact less with videos relative to other countries, it is also difficult to reach conclusions about or predict viewer behavior due to high levels of variance. Whether engagement levels differ significantly across countries is further investigated in *Section 4.1*.
 
 ## 3.4 Days to Trend by Country
 
@@ -701,7 +701,7 @@ m1 <- lm(log_views ~ log_likes + log_comments + days_to_trend + publish_hour,
 summary(m1)
 ```
 
-The first model analyses views and its relationship with log(likes), log(comments,) days to trend and publish hour. Likes and comments have a positive relationship, as expected. While days to trend is also positive, the coefficients are near-zero, which suggests that days to trend has limited impact on a video's success, aligned with earlier findings in *Section 5.2*. For model interpretation, the $p$-value is less than 0.05, which implies that the model is statistically significant. The adjusted R^2^ value indicates that 67% of the data is explained by this model (see *Appendix 11.3 for complete model output*).
+The first model analyses log(views) and its relationship with log(likes), log(comments), days to trend and publish hour. Likes and comments have a positive relationship, as expected. While days to trend is also positive, the coefficients are near-zero, which suggests that days to trend has limited impact on a video's success, aligned with earlier findings in *Section 5.2*. For model interpretation, the $p$-value is less than 0.05, which implies that the model is statistically significant. The adjusted R^2^ value indicates that about 63.3% of the variation in log(views) is explained by this model (see *Appendix 11.3 for complete model output*).
 
 ## 6.3 Model 2: Base + Category Dummies
 
@@ -730,7 +730,7 @@ m3 <- lapply(unique(reg_df$region), function(r) {
 names(m3) <- unique(reg_df$region)
 ```
 
-Model 3 performs region-stratified regression to examine how predictors affect `log_views` within each country separately (*see* *Appendix 11.5 for complete output on North America region summary*).
+Model 3 performs region-stratified regression to examine how predictors affect `log_views` within each region separately (*see* *Appendix 11.5 for complete output on North America region summary*).
 
 ```{r model3-us-summary, include=FALSE}
 summary(m3[["North America"]])
@@ -981,162 +981,82 @@ While PCA effectively compresses the dataset’s variance,the graph from *Sectio
 
 # 8. Predictive Model Extension
 
-## 8.1 Overview and Objective
+To assess whether the regression findings from *Section 6* generalise beyond the fitted sample, we conducted an 80/20 train-test split on the cleaned regression dataset. Two models were evaluated. **M1** used log(likes), log(comments), days to trend, and publish hour as predictors of log(views). **M2** used the same predictors as M1, but additionally included video category. Model performance was evaluated on the test set using Test R², RMSE, and MAE.
 
-In this section, predictive models estimating log(views) for unseen videos were built, using a train/test split, to verify findings from earlier sections. Two configurations were evaluated:
-
--   **M1** (base continuous predictors: logarithm of like count, logarithm of comment count, days to trend, and publish hour)
-
--   **M2** (base + category dummies: logarithm of like count, logarithm of comment count, days to trend, publish hour, and category)
-
-## 8.2 Train / Test Split
-
-Following industry standards, an 80-20 train/test split was used on the cleaned regression dataset from *Section 6*.
-
-```{r pred-split, echo=FALSE}
+```{r predictive-extension-table, echo=FALSE, message=FALSE, warning=FALSE}
 set.seed(42)
 
-# 80/20 split on reg_df (the cleaned regression dataset from Section 6)
-train_idx  <- sample(seq_len(nrow(reg_df)), size = floor(0.8 * nrow(reg_df)))
-train_df   <- reg_df[train_idx, ]
-test_df    <- reg_df[-train_idx, ]
+# 80/20 train-test split on the cleaned regression dataset from Section 6
+train_idx <- sample(seq_len(nrow(reg_df)), size = floor(0.8 * nrow(reg_df)))
+train_df  <- reg_df[train_idx, ]
+test_df   <- reg_df[-train_idx, ]
 
-cat("Training rows:", nrow(train_df), "\n")
-cat("Test rows:    ", nrow(test_df),  "\n")
-cat("Split ratio:  ", round(nrow(train_df) / nrow(reg_df), 2), "/",
-    round(nrow(test_df) / nrow(reg_df), 2), "\n")
-```
-
-## 8.3 Refit Models on Training Set
-
-First, M1 and M2 were fitted on training data.
-
-```{r pred-refit, echo=FALSE}
-# Refit M1 and M2 on training data only
-m1_train <- lm(log_views ~ log_likes + log_comments + days_to_trend + publish_hour,
-               data = train_df)
-
-m2_train <- lm(log_views ~ log_likes + log_comments + days_to_trend +
-                 publish_hour + category,
-               data = train_df)
-
-cat("M1 (train) — R²:", round(summary(m1_train)$r.squared, 4),
-    "| Adj R²:", round(summary(m1_train)$adj.r.squared, 4), "\n")
-cat("M2 (train) — R²:", round(summary(m2_train)$r.squared, 4),
-    "| Adj R²:", round(summary(m2_train)$adj.r.squared, 4), "\n")
-```
-
-## 8.4 Predictions and Evaluation Metrics
-
-```{r pred-metrics, echo=FALSE}
-# Helper function: compute RMSE, MAE, and test R² from actuals and predictions
-pred_eval <- function(model, test_data, label) {
-  preds     <- predict(model, newdata = test_data)
-  actuals   <- test_data$log_views
-  residuals <- actuals - preds
-  rmse <- sqrt(mean(residuals^2))
-  mae  <- mean(abs(residuals))
-  ss_res <- sum(residuals^2)
-  ss_tot <- sum((actuals - mean(actuals))^2)
-  r2   <- 1 - ss_res / ss_tot
-  cat(label, "\n")
-  cat("  Test R²  :", round(r2,   4), "\n")
-  cat("  RMSE     :", round(rmse, 4), "\n")
-  cat("  MAE      :", round(mae,  4), "\n\n")
-  tibble(Model = label, Test_R2 = r2, RMSE = rmse, MAE = mae)
-}
-
-m1_perf <- pred_eval(m1_train, test_df, "M1: Base Model")
-m2_perf <- pred_eval(m2_train, test_df, "M2: Base + Category")
-```
-
-The test R^2^ and error metrics suggest that both models generalize well with minimal overfitting. The gap between train R² and test R² is small for both models, implying that the relationships learned from training data can be applied reliably to unseen videos from the test data. This gives confidence that the predictors, likes, comments, days to trend, publish hour, and category, capture genuine signal rather than noise specific to the training sample.
-
-## 8.5 Model Comparison Table
-
-```{r pred-comparison-table, echo=FALSE}
-# Compile train and test metrics side by side
-comparison <- tibble(
-  Model       = c("M1: Base", "M2: Base + Category"),
-  Train_R2    = c(round(summary(m1_train)$r.squared, 4),
-                  round(summary(m2_train)$r.squared, 4)),
-  Test_R2     = c(round(m1_perf$Test_R2, 4),
-                  round(m2_perf$Test_R2, 4)),
-  RMSE        = c(round(m1_perf$RMSE, 4),
-                  round(m2_perf$RMSE, 4)),
-  MAE         = c(round(m1_perf$MAE, 4),
-                  round(m2_perf$MAE, 4))
+# Fit M1 and M2 on the training set
+m1_train <- lm(
+  log_views ~ log_likes + log_comments + days_to_trend + publish_hour,
+  data = train_df
 )
 
-kable(comparison,
-      col.names = c("Model", "Train R²", "Test R²", "RMSE", "MAE"),
-      caption   = "Predictive Performance: Train vs Test") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
-```
+m2_train <- lm(
+  log_views ~ log_likes + log_comments + days_to_trend + publish_hour + category,
+  data = train_df
+)
 
-M2 outperforms M1 on all three metrics, with higher Test R², lower RMSE and MAE, which suggests that adding content category improves predictive accuracy. The improvement, while incremental in absolute terms, confirms that category is not redundant with the base numeric variables. It carries independent information about expected view counts, as suggested in *Section 4.3* and *Section 6.3*, and contributes predictive power.
+# Helper function to evaluate predictive performance on the test set
+pred_eval <- function(model, test_data) {
+  preds <- predict(model, newdata = test_data)
+  actuals <- test_data$log_views
+  residuals <- actuals - preds
+  
+  rmse <- sqrt(mean(residuals^2))
+  mae <- mean(abs(residuals))
+  ss_res <- sum(residuals^2)
+  ss_tot <- sum((actuals - mean(actuals))^2)
+  test_r2 <- 1 - ss_res / ss_tot
+  
+  tibble(Test_R2 = test_r2, RMSE = rmse, MAE = mae)
+}
 
-## 8.6 Actual vs Predicted Plot
+# Evaluate both models
+m1_perf <- pred_eval(m1_train, test_df)
+m2_perf <- pred_eval(m2_train, test_df)
 
-```{r pred-actual-vs-predicted, fig.height=5, echo=FALSE}
-# Generate test-set predictions from M2 (better model)
-test_df <- test_df %>%
-  mutate(
-    m2_pred   = predict(m2_train, newdata = test_df),
-    residual  = log_views - m2_pred
+# Compile train and test metrics
+comparison <- tibble(
+  Model = c("M1: Base", "M2: Base + Category"),
+  Train_R2 = c(summary(m1_train)$r.squared,
+               summary(m2_train)$r.squared),
+  Test_R2 = c(m1_perf$Test_R2,
+              m2_perf$Test_R2),
+  RMSE = c(m1_perf$RMSE,
+           m2_perf$RMSE),
+  MAE = c(m1_perf$MAE,
+          m2_perf$MAE)
+) %>%
+  mutate(across(where(is.numeric), ~round(.x, 4)))
+
+kable(
+  comparison,
+  col.names = c("Model", "Train R²", "Test R²", "RMSE", "MAE"),
+  caption = "Predictive Performance: Train vs Test",
+  booktabs = TRUE
+) %>%
+  kable_styling(
+    full_width = FALSE,
+    font_size = 8,
+    latex_options = c("hold_position")
   )
-
-# Scatter: actual vs predicted, coloured by region
-ggplot(test_df, aes(x = m2_pred, y = log_views, colour = region)) +
-  geom_point(alpha = 0.2, size = 0.8) +
-  geom_abline(slope = 1, intercept = 0,
-              colour = "#e74c3c", linewidth = 0.9, linetype = "dashed") +
-  geom_smooth(aes(group = 1), method = "lm", se = FALSE,
-              colour = "#27ae60", linewidth = 0.8) +
-  scale_colour_brewer(palette = "Set2", name = "Region") +
-  labs(
-    title    = "Actual vs Predicted log_views — M2 (Test Set)",
-    subtitle = "Dashed red = perfect prediction; green = fitted trend",
-    x        = "Predicted log_views",
-    y        = "Actual log_views"
-  ) +
-  theme_minimal(base_size = 13) +
-  theme(plot.title = element_text(face = "bold"))
 ```
 
-The plot above shows that Asian market videos, colored in light blue, tend to cluster slightly above the perfect-prediction line, meaning the model slightly underpredicts their views. This is consistent with findings in *Section 4.1* and *Section 6.8* that, while the impact is limited, engagement patterns changes differs across countries.
+The table shows that M2 outperforms M1 across all evaluation metrics. Test R² increases from 0.6329 to 0.6661, while RMSE decreases from 1.0209 to 0.9736 and MAE decreases from 0.8321 to 0.7887. This suggests that adding video category improves predictive performance beyond the base engagement and timing variables. However, the improvement is incremental rather than large, so category should be interpreted as a secondary factor rather than the main driver of view performance. This is consistent with the earlier chi-square and regression findings in Section 4.3 and Section 6.3, where category differences were statistically meaningful but secondary to engagement-related variables.
 
-## 8.7 Residual Distribution
-
-```{r pred-residuals, fig.height=4, echo=FALSE}
-# Distribution of prediction errors on test set
-ggplot(test_df, aes(x = residual)) +
-  geom_histogram(bins = 60, fill = "#3B82F6", colour = "white", alpha = 0.85) +
-  geom_vline(xintercept = 0, colour = "#e74c3c",
-             linewidth = 0.9, linetype = "dashed") +
-  labs(
-    title    = "Distribution of Prediction Errors — M2 (Test Set)",
-    subtitle = "Centred near 0 indicates low systematic bias",
-    x        = "Residual (Actual − Predicted)",
-    y        = "Count"
-  ) +
-  theme_minimal(base_size = 13) +
-  theme(plot.title = element_text(face = "bold"))
-```
-
-The histogram of prediction errors, known as the residual distribution, shows a roughly symmetric distribution around zero with no large systematic bias. This suggests that the model neither consistently over- nor under-predicts. The mild right tail reflects a small number of videos that massively outperformed expectations, aligning with findings from *Section 3.1* that there are a few videos that go extremely viral.
-
-## 8.8 Limitations of the Predictive Model
-
-It should be noted that findings in this section indicate correlation, not necessarily causation. The model predicts views from engagement metrics such as likes and comments, which accumulate alongside views. The model therefore reflects a co-occurrence pattern rather than a causal mechanism. A YouTuber cannot manufacture high likes in advance to drive views; the causality likely runs in both directions, with high view counts causing high like counts and vice versa.
-
-Moreover, the dataset may have survival bias, as it only contains videos that successfully made the trending list. Videos that were published but never trended are not included in the dataset, thus the model cannot identify what distinguishes a trending video from a non-trending one. Furthermore, YouTube's recommendation algorithm, creator ecosystem, and audience behavior are constantly changing. Finally, there are key drivers of view count that are absent from the dataset, such as thumbnail quality, creator subscriber count, external promotions, algorithm timing, and trending topic alignment. These factors limit the model's usefulness as a pre-publication decision tool.
+This predictive extension has important limitations. Likes and comments accumulate together with views, so the model reflects post-publication co-movement rather than a causal pre-publication prediction tool. In addition, the dataset only contains videos that already entered the trending list, so it cannot explain what separates trending videos from non-trending videos. Therefore, the model is best used as a validation and decision-support tool, not as a standalone forecasting model.
 
 # 9. Feedback Incorporation
 
 During the Phase 1 presentation, we received two main pieces of feedback: to extend the regression analysis into a possible predictive tool, and to examine how much model fit is lost when using dimensionality reduction for regression.
 
-To address the first point, we added *Section 8*, which develops an initial predictive model extension using an 80/20 train/test split. The category model performed better on the test set, suggesting that content category adds predictive value beyond engagement and timing variables. However, because likes and comments are post-publication variables that grow together with views, we interpret the model as a prototype rather than a fully deployable pre-publication prediction tool.
+To address the first point, we added Section 8 as a predictive validation extension. Using an 80/20 train-test split, we found that the category model performed better than the base model on unseen test data. However, because likes and comments are post-publication variables that grow together with views, we interpret this model as a validation and decision-support tool rather than a fully deployable pre-publication prediction model.
 
 To address the second point, we added *Section 7*, which uses principal components as regression inputs. We compared a reduced 2-PC model with a 8-PC model to assess the trade-off between simplicity and explanatory power. The reduced model lost about 0.1084 in R², or 10.84 percentage points, showing that dimensionality reduction preserves most of the model fit while discarding some information.
 
