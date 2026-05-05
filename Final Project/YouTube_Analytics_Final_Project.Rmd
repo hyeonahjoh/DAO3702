@@ -853,7 +853,7 @@ In *Section 4*, PCA was run on all 8 numeric variables (including `log_views`), 
 
 The question we aim to answer in this section is: how much of that perfect fit survives when the number of PCs is dropped to 2? To answer this question, we examined the R² gap between the two models, which represents the cost of dimensionality reduction.
 
-### 7.1 Building the PC Regression Dataset
+## 7.1 Building the PC Regression Dataset
 
 ```{r pc-reg-data, echo=FALSE}
 # All 8 PC scores from pca_result (fitted in Section 5)
@@ -865,7 +865,7 @@ pc_scores$log_views <- log(pca_data$views)
 cat("Rows in PC regression dataset:", nrow(pc_scores), "\n")
 ```
 
-### 7.2 Fitting the Two Models
+## 7.2 Fitting the Two Models
 
 ```{r pc-reg-models, include=FALSE}
 # Full model: all 8 PCs (lossless rotation — R² = 1 by design)
@@ -882,7 +882,7 @@ summary(m_pc2)
 
 We fit two linear regression models, one with all 8 PCs and another with 2 PCs selected in *Section 5* (*see Appendix 11.5 for complete model output*).
 
-### 7.3 Model Comparison Table
+## 7.3 Model Comparison Table
 
 The table below shows that approximately 10.9% of R² is lost when moving from 8 PCs to 2 PCs.
 
@@ -904,7 +904,7 @@ knitr::kable(
 )
 ```
 
-### 7.4 Progressive R² Across All PC Cutoffs
+## 7.4 Progressive R² Across All PC Cutoffs
 
 ```{r pc-reg-progressive, fig.cap="R-squared of log views regressed on PC1 through PC$k$, for k equals 1 to 8", echo=FALSE}
 progressive_r2 <- data.frame(
@@ -937,7 +937,7 @@ ggplot(progressive_r2, aes(x = k, y = r2)) +
   theme_minimal(base_size = 13)
 ```
 
-### 7.5 Cumulative Variance Explained vs R²
+## 7.5 Cumulative Variance Explained vs R²
 
 ```{r pc-reg-cumvar, fig.cap="Cumulative PCA variance explained vs predictive R-squared for log-views", echo=FALSE}
 n_pcs <- length(pca_result$sdev)
