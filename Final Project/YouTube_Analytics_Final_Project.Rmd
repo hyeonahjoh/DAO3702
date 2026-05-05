@@ -761,7 +761,7 @@ ggplot(region_coefs %>% filter(term != "(Intercept)"),
        y = "Estimate", x = "Region", colour = "Region")
 ```
 
-The third model separates the second model by region. Across all regions, log(likes) and log(comments) are consistently the strongest positive predictors of views, confirming that engagement drives popularity universally. For categories, Sports and Shows tend to perform well, particularly in Latin America, while Education, Science and Technology, and Pets and Animals are among the weakest performers across most regions, relative to Entertainment. Days to trend is positive across all regions but the coefficients are small in magnitude, reaffirming previous findings. For publish hour, all regions show negative or near-zero coefficients, meaning posting later in the day has little to no benefit regardless of region.
+The third model separates the second model by region. Across all regions, likes and comments are consistently the strongest positive predictors of views, confirming that engagement drives popularity universally. For categories, Sports and Shows tend to perform well, particularly in Latin America, while Education, Science and Technology, and Pets and Animals are among the weakest performers across most regions, relative to Entertainment. Days to trend is positive across all regions but the coefficients are small in magnitude, reaffirming previous findings. For publish hour, all regions show negative or near-zero coefficients, meaning posting later in the day has little to no benefit regardless of region.
 
 ## 6.5 Model Comparison
 
@@ -847,11 +847,11 @@ par(mfrow = c(1, 1))
 
 Residual diagnostics show mild non-linearity and heteroscedasticity, with some outliers present. However, no severe violations are observed, and the model remains a reasonable approximation given the large and heterogeneous dataset. Therefore, the model gives a reasonable approximation, but the actual predicted amount should be taken with a grain of salt.
 
-# 7. PCA-Based Regression
+# 7. PCA-Based Regression (Feedback Incorporation)
 
 In *Section 4*, PCA was run on all 8 numeric variables (including `log_views`), producing 8 orthogonal components. Since PCA is a lossless rotation of the original variable space, regressing `log_views` on all 8 PCs is mathematically equivalent to a full OLS regression. It would perfectly reconstruct `log_views` (R² = 1), giving a natural ceiling.
 
-The question we aim to answer in this section is: how much of that perfect fit survives when the number of PCs is dropped to 2? To answer this question, we examined the R² gap between the two models, which represents the cost of dimensionality reduction.
+During the Phase 1 presentation, we received feedback to examine how much of that perfect model fit is lost when using dimensionality reduction, since the number of PCs dropped to 2. To answer this question, we examined the R² gap between the two models, which represents the cost of dimensionality reduction.
 
 ## 7.1 Building the PC Regression Dataset
 
@@ -884,7 +884,7 @@ We fit two linear regression models, one with all 8 PCs and another with 2 PCs s
 
 ## 7.3 Model Comparison Table
 
-The table below shows that approximately 10.9% of R² is lost when moving from 8 PCs to 2 PCs.
+The table below shows that approximately 10.9% of R² is lost when moving from 8 PCs to 2 PCs, showing that dimensionality reduction preserves most of the model fit while discarding some information.
 
 ```{r pc-reg-table, echo=FALSE}
 fit_comparison <- data.frame(
@@ -979,9 +979,9 @@ ggplot(cumvar_long, aes(x = k, y = value, colour = metric, group = metric)) +
 
 While PCA effectively compresses the dataset’s variance,the graph from *Section 7.5* demonstrates a distinction between variance explained and predictive power; the first two components capture the majority of the variance but fail to translate that into significant R^2^ gains. Furthermore, the non-monotonic increases in R^2^ seen *Section 7.4* suggest that viewership is driven by specific, lower-variance components rather than the broad engagement metrics captured by PC1.
 
-# 8. Predictive Model Extension
+# 8. Predictive Model Extension (Feedback Incorporation)
 
-To assess whether the regression findings from *Section 6* generalise beyond the fitted sample, we conducted an 80/20 train-test split on the cleaned regression dataset. Two models were evaluated. **M1** used log(likes), log(comments), days to trend, and publish hour as predictors of log(views). **M2** used the same predictors as M1, but additionally included video category. Model performance was evaluated on the test set using Test R², RMSE, and MAE.
+During the Phase 1 presentation, we also received feedback to extend the regression analysis into a possible predictive tool. To assess whether the regression findings from *Section 6* generalise beyond the fitted sample, we conducted an 80/20 train-test split on the cleaned regression dataset. Two models were evaluated. **M1** used log(likes), log(comments), days to trend, and publish hour as predictors of log(views). **M2** used the same predictors as M1, but additionally included video category. Model performance was evaluated on the test set using Test R², RMSE, and MAE.
 
 ```{r predictive-extension-table, echo=FALSE, message=FALSE, warning=FALSE}
 set.seed(42)
@@ -1051,14 +1051,6 @@ kable(
 The table shows that M2 outperforms M1 across all evaluation metrics. Test R² increases from 0.6329 to 0.6661, while RMSE decreases from 1.0209 to 0.9736 and MAE decreases from 0.8321 to 0.7887. This suggests that adding video category improves predictive performance beyond the base engagement and timing variables. However, the improvement is incremental rather than large, so category should be interpreted as a secondary factor rather than the main driver of view performance. This is consistent with the earlier chi-square and regression findings in Section 4.3 and Section 6.3, where category differences were statistically meaningful but secondary to engagement-related variables.
 
 This predictive extension has important limitations. Likes and comments accumulate together with views, so the model reflects post-publication co-movement rather than a causal pre-publication prediction tool. In addition, the dataset only contains videos that already entered the trending list, so it cannot explain what separates trending videos from non-trending videos. Therefore, the model is best used as a validation and decision-support tool, not as a standalone forecasting model.
-
-# 9. Feedback Incorporation
-
-During the Phase 1 presentation, we received two main pieces of feedback: to extend the regression analysis into a possible predictive tool, and to examine how much model fit is lost when using dimensionality reduction for regression.
-
-To address the first point, we added Section 8 as a predictive validation extension. Using an 80/20 train-test split, we found that the category model performed better than the base model on unseen test data. However, because likes and comments are post-publication variables that grow together with views, we interpret this model as a validation and decision-support tool rather than a fully deployable pre-publication prediction model.
-
-To address the second point, we added *Section 7*, which uses principal components as regression inputs. We compared a reduced 2-PC model with a 8-PC model to assess the trade-off between simplicity and explanatory power. The reduced model lost about 0.1084 in R², or 10.84 percentage points, showing that dimensionality reduction preserves most of the model fit while discarding some information.
 
 # 10. Key Findings and Discussion
 
