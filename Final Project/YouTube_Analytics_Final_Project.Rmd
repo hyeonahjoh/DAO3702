@@ -427,7 +427,7 @@ cat("\nEffect Size (Eta-squared):", round(eta_squared, 4), "\n")
 cat("Country explains", round(eta_squared * 100, 2), "% of variance in engagement\n")
 ```
 
-The results show a very large $F$-statistic and a $p$-value below 0.001, hence differences are statistically significant. However, with a large dataset, this is expected, thus we moved on to investigate the effect size. $\eta$-squared is about 0.065, meaning country explains roughly 6.5 percent of variation in engagement. Therefore, overall, engagement does differ across countries, but the practical impact is modest (*see Appendix 11.2 for complete ANOVA output*).
+A one-way ANOVA was conducted to test whether engagement rates differ across countries. The result is statistically significant (p < 0.001), indicating that at least one country differs in mean engagement. However, the effect size is small (η² ≈ 0.065), meaning country explains only about 6.5% of the variation. This suggests that while differences exist, geography has limited practical influence on engagement. Since ANOVA only tells us that at least one country differs, we next use Tukey HSD to identify which country pairs differ.
 
 ## 4.2 Post-hoc Analysis: Pairwise Country Comparisons
 
@@ -446,7 +446,10 @@ kable(tukey_df, digits = 4,
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 ```
 
-To identify where these differences occur, we use a Tukey post hoc test, which compares each pair of countries. We find that many country pairs are statistically significant. For example, Russia and Mexico show higher engagement relative to Canada, while India and Japan tend to be lower. Hence, there are clear differences across countries, but again, these should be interpreted together with the earlier result that country explains only a small portion of overall variation. This suggests that country differences exist, but are not the main driver on their own.
+Tukey HSD results show that many country pairs differ significantly. A general pattern emerges:
+• Higher engagement: Russia, Mexico, France
+• Lower engagement: India, Japan
+These differences are consistent but modest, reinforcing that country-level effects are secondary rather than primary drivers of engagement.Since country differences are statistically present but practically limited, we next examine whether differences in regional content mix may partly explain these engagement patterns.
 
 ## 4.3 Chi-Square: Category Preferences by Region
 
@@ -494,7 +497,9 @@ top_cats %>%
   )
 ```
 
-To understand why engagement differs, we test whether content types vary across regions using a chi square test. The result is statistically significant, meaning category distribution differs across regions. From the chart, we see that regions tend to feature different mixes of content. For example, Europe has more Sports and Music, while Asia is more concentrated in Entertainment. This suggests that part of the engagement differences across countries may be due to differences in what content is trending.
+A chi-square test was used to examine whether trending video categories differ across regions. The result is statistically significant (p < 0.001), indicating that category distribution varies by region. Regional patterns are evident: Europe has a higher share of Sports and Music, while Asia is more concentrated in Entertainment. This suggests that engagement differences across countries may partly reflect differences in what content trends, rather than purely differences in audience behaviour.
+
+Overall, our statistical analysis shows that geography matters statistically, but its practical effect is limited. Regional content mix provides a more meaningful explanation for some of the observed engagement differences, which is further examined in the regression analysis in Section 6.
 
 # 5. Dimensionality Reduction
 
