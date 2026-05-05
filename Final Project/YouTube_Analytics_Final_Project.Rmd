@@ -20,6 +20,7 @@ output:
     code_folding: show
     fig_width: 10
     fig_height: 6
+fontsize: 10pt
 ---
 
 ```{r setup, include=FALSE}
@@ -39,7 +40,7 @@ options(tinytex.verbose = TRUE)
 
 # Executive Summary
 
-This project analyses YouTube trending video data from 10 countries (the United States, Great Britain, Germany, Canada, France, India, Japan, South Korea, Mexico, and Russia) to uncover actionable insights for aspiring content creators. Using data wrangling, visualisation, statistical inference, dimensionality reduction, regression modeling, and predictive analytics, the project aims to answer the question "What factors drive a video's success on YouTube across different markets?"
+This project analysed YouTube trending video data from 10 countries (the United States, Great Britain, Germany, Canada, France, India, Japan, South Korea, Mexico, and Russia) to uncover actionable insights for aspiring content creators. Using data wrangling, visualisation, statistical inference, dimensionality reduction, regression modeling, and predictive analytics, the project aimed to answer the question "What factors drive a video's success on YouTube across different markets?"
 
 The analysis revealed five key findings:
 
@@ -63,7 +64,7 @@ Given the analysis and key findings, some recommendations for aspiring content c
 
 YouTube has become the world's second-largest search engine with over 2.5 billion monthly active users across diverse global markets. For aspiring content creators, understanding what makes a video "trend" in different countries is crucial to become an internationally-recognised figure and to raise profits.
 
-This analysis examines the YouTube Trending Videos Dataset from Kaggle, containing detailed information about trending videos across 10 countries: United States, Great Britain, Germany, Canada, France, India, Japan, South Korea, Mexico, and Russia. The dataset contains approximately 400,000 observations, and key attributes measured include view counts, like and dislike counts, comment counts, video category, video title, publish date, and trending date.
+This analysis examined the YouTube Trending Videos Dataset from Kaggle, containing detailed information about trending videos across 10 countries: United States, Great Britain, Germany, Canada, France, India, Japan, South Korea, Mexico, and Russia. The dataset contains approximately 400,000 observations, and key attributes measured include view counts, like and dislike counts, comment counts, video category, video title, publish date, and trending date.
 
 ## 1.2 Research Questions
 
@@ -143,7 +144,7 @@ country_counts <- all_videos %>%
 kable(country_counts,
       col.names = c("Code", "Observations", "Country", "Region"),
       caption = "Dataset Size by Country") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 ```
 
 # 2. Data Wrangling
@@ -267,7 +268,7 @@ global_summary <- youtube_clean %>%
 kable(global_summary,
       col.names = c("Variable", "Mean", "Median", "SD", "IQR", "CV"),
       caption = "Global Engagement Overview") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 ```
 
 The numerical summary of the data given reveals two key insights. First, the mean is greater than the median, which indicates that the distribution is right-skewed. This implies that very few videos go extremely viral, pulling up the mean number of views. Second, the median days to trend is one day, suggesting that videos on the trending list often catch momentum quickly. The second point is further investigated in *Section 3.5*.
@@ -427,7 +428,7 @@ cat("\nEffect Size (Eta-squared):", round(eta_squared, 4), "\n")
 cat("Country explains", round(eta_squared * 100, 2), "% of variance in engagement\n")
 ```
 
-A one-way ANOVA was conducted to test whether engagement rates differ across countries. The result is statistically significant (p \< 0.001), indicating that at least one country differs in mean engagement. However, the effect size is small (η² ≈ 0.065), meaning country explains only about 6.5% of the variation. This suggests that while differences exist, geography has limited practical influence on engagement. Since ANOVA only tells us that at least one country differs, we next use Tukey HSD to identify which country pairs differ.
+A one-way ANOVA was conducted to test whether engagement rates differ across countries. The result is statistically significant (p \< 0.001), indicating that at least one country differs in mean engagement. However, the effect size is small (η² ≈ 0.065), meaning country explains only about 6.5% of the variation. This suggests that while differences exist, geography has limited practical influence on engagement. Since ANOVA only tells us that at least one country differs, we next use Tukey HSD to identify which country pairs differ (*see Appendix 11.2 for complete ANOVA output*).
 
 ## 4.2 Post-hoc Analysis: Pairwise Country Comparisons
 
@@ -443,10 +444,17 @@ tukey_df <- as.data.frame(tukey_result$country_code) %>%
 kable(tukey_df, digits = 4,
       col.names = c("Comparison", "Difference", "Lower CI", "Upper CI", "Adj. P-value"),
       caption = "Top 10 Significant Pairwise Country Differences (Tukey HSD)") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 ```
 
-Tukey HSD results show that many country pairs differ significantly. A general pattern emerges: • Higher engagement: Russia, Mexico, France • Lower engagement: India, Japan These differences are consistent but modest, reinforcing that country-level effects are secondary rather than primary drivers of engagement.Since country differences are statistically present but practically limited, we next examine whether differences in regional content mix may partly explain these engagement patterns.
+Tukey HSD results show that many country pairs differ significantly. A general pattern emerges: 
+
+- Higher engagement: Russia, Mexico, France
+- Lower engagement: India, Japan 
+
+These differences are consistent but modest, reinforcing that country-level effects are secondary rather than primary drivers of engagement.
+
+Since country differences are statistically present but practically limited, we next examine whether differences in regional content mix may partly explain these engagement patterns.
 
 ## 4.3 Chi-Square: Category Preferences by Region
 
@@ -467,7 +475,7 @@ cat("P-value:", format.pval(chi_result$p.value, digits = 4), "\n")
 
 # Show contingency table
 kable(contingency, caption = "Category Counts by Region") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 ```
 
 ```{r chi-square-visualization, fig.height=5, echo=FALSE}
@@ -547,7 +555,7 @@ var_explained <- data.frame(
 )
 
 kable(var_explained, caption = "PCA Variance Explained") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 ```
 
 In the PCA biplot, views, likes, dislikes, and comment count all point in similar directions along PC1, meaning popular videos tend to score high on all of these engagement metrics together. Like ratio and engagement rate point in similar directions along PC2, reflecting how positive reactions and active engagement are related to one another. Notably, days to trend and tag count have the shortest arrows, suggesting that timing and metadata have very little impact on how a video performs, in contrast to the pattern found in *Section 3.4*.
@@ -1071,7 +1079,7 @@ comparison <- tibble(
 kable(comparison,
       col.names = c("Model", "Train R²", "Test R²", "RMSE", "MAE"),
       caption   = "Predictive Performance: Train vs Test") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 ```
 
 M2 outperforms M1 on all three metrics, with higher Test R², lower RMSE and MAE, which suggests that adding content category improves predictive accuracy. The improvement, while incremental in absolute terms, confirms that category is not redundant with the base numeric variables. It carries independent information about expected view counts, as suggested in *Section 4.3* and *Section 6.3*, and contributes predictive power.
@@ -1249,7 +1257,7 @@ country_counts <- all_videos %>%
 kable(country_counts,
       col.names = c("Code", "Observations", "Country", "Region"),
       caption = "Dataset Size by Country") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 
 
 
@@ -1369,7 +1377,7 @@ global_summary <- youtube_clean %>%
 kable(global_summary,
       col.names = c("Variable", "Mean", "Median", "SD", "IQR", "CV"),
       caption = "Global Engagement Overview") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 
 # 3.2 Category Distribution of Trending Videos by Country
 # Count number of trending videos per country-category combination
@@ -1524,7 +1532,7 @@ tukey_df <- as.data.frame(tukey_result$country_code) %>%
 kable(tukey_df, digits = 4,
       col.names = c("Comparison", "Difference", "Lower CI", "Upper CI", "Adj. P-value"),
       caption = "Top 10 Significant Pairwise Country Differences (Tukey HSD)") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 
 # 4.3 Chi-Square: Category Preferences by Region
 # Chi-square test for category distribution across regions
@@ -1543,7 +1551,7 @@ cat("P-value:", format.pval(chi_result$p.value, digits = 4), "\n")
 
 # Show contingency table
 kable(contingency, caption = "Category Counts by Region") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 
 # Visualize category distribution by region (stacked bar chart)
 top_cats %>%
@@ -1557,7 +1565,8 @@ top_cats %>%
   scale_fill_brewer(palette = "Set2", name = "Category") +
   labs(
     title = "Category Distribution by Region",
-    subtitle = "Chi-square test confirms significant differences in category preferences across regions",
+    subtitle = "Chi-square test confirms significant differences in category 
+        preferences across regions",
     x = NULL,
     y = "Proportion of Trending Videos"
   ) +
@@ -1605,7 +1614,7 @@ var_explained <- data.frame(
 )
 
 kable(var_explained, caption = "PCA Variance Explained") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 
 # PCA Biplot
 # Extract loadings for PC1 and PC2
@@ -2011,7 +2020,7 @@ comparison <- tibble(
 kable(comparison,
       col.names = c("Model", "Train R²", "Test R²", "RMSE", "MAE"),
       caption   = "Predictive Performance: Train vs Test") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 
 # 8.6 Actual vs Predicted Plot
 # Generate test-set predictions from M2 (better model)
@@ -2056,7 +2065,7 @@ ggplot(test_df, aes(x = residual)) +
 
 ## 11.2 ANOVA Output for *Section 4.1*
 
-```{r anova-countries-appendix, include=FALSE}
+```{r anova-countries-appendix, echo=FALSE}
 # ANOVA for engagement across countries
 anova_country <- aov(engagement_rate ~ country_code, data = youtube_clean)
 anova_summary <- summary(anova_country)
