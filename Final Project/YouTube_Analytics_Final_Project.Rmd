@@ -64,11 +64,11 @@ Given the analysis and key findings, some recommendations for aspiring content c
 
 YouTube has become the world's second-largest search engine with over 2.5 billion monthly active users across diverse global markets. For aspiring content creators, understanding what makes a video "trend" in different countries is crucial to become an internationally-recognised figure and to raise profits.
 
-This analysis examined the YouTube Trending Videos Dataset from Kaggle, containing detailed information about trending videos across 10 countries: United States, Great Britain, Germany, Canada, France, India, Japan, South Korea, Mexico, and Russia. The dataset contains approximately 400,000 observations, and key attributes measured include view counts, like and dislike counts, comment counts, video category, video title, publish date, and trending date.
+This analysis examined the [YouTube Trending Videos Dataset](https://www.kaggle.com/datasets/datasnaek/youtube-new) from Kaggle, containing detailed information about trending videos across 10 countries: United States, Great Britain, Germany, Canada, France, India, Japan, South Korea, Mexico, and Russia. The dataset has approximately 400,000 observations, and key attributes measured include view counts, like and dislike counts, comment counts, video category, video title, publish date, and trending date.
 
 ## 1.2 Research Questions
 
-To answer the overarching question of what makes a YouTube video go viral, we explored five sub-questions:
+To answer the overarching question of what makes a YouTube video go viral, we explored four sub-questions:
 
 1.  How do video engagement patterns differ across countries?
 2.  Are there significant differences in category preferences across regions?
@@ -99,7 +99,7 @@ library(ggrepel)
 set.seed(42)
 ```
 
-As the dataset contained ten different files, one for each country, we loaded all CSV and JSON files `R`, which were then combined using `left_join` on `category_id` (see *Appendix 11.1* for full data loading and combining process). The output below shows a high-level summary of the combined dataset.
+As the dataset contained twenty different files, one CSV file and one JSON file for each country, we first loaded all files R and combined using left_join on category_id (*see Appendix 11.1 for full data loading and combining process). The output below shows a high-level summary of the combined dataset*.
 
 ```{r load-all-data, echo=FALSE}
 # Define country codes and full names
@@ -241,6 +241,8 @@ kable(country_summary,
   column_spec(3, width = "2cm") 
 ```
 
+*See Appendix 11.2 for a fuller statistical summary of the cleaned dataset.*
+
 # 3. Descriptive Analytics and Visualization
 
 ## 3.1 Global Engagement Overview
@@ -271,7 +273,7 @@ kable(global_summary,
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 ```
 
-The numerical summary of the data given reveals two key insights. First, the mean is greater than the median, which indicates that the distribution is right-skewed. This implies that very few videos go extremely viral, pulling up the mean number of views. Second, the median days to trend is one day, suggesting that videos on the trending list often catch momentum quickly. The second point is further investigated in *Section 3.5*.
+The numerical summary of the data revealed two key insights. First, the mean is greater than the median, which indicates that the distribution is right-skewed. This implies that very few videos go extremely viral, pulling up the mean number of views. Second, the median days to trend is one day, suggesting that videos on the trending list often catch momentum quickly. The second point is further investigated in *Section 3.4*.
 
 ## 3.2 Category Distribution of Trending Videos by Country
 
@@ -300,7 +302,7 @@ p_cat <- youtube_clean %>%
 print(p_cat)
 ```
 
-Videos in the entertainment category appeared the most often on the trending list across all countries except Russia, where it ranked second after people and blogs. This suggests that entertainment videos are popular among audiences across the globe. Notably, sports appeared particularly strong in France, Japan, and Mexico, music in Great Britain, and news and politics in South Korea. The impact of video category on the success of a YouTube video is further investigated in *Section 6.2*.
+Videos in the Entertainment category appeared most often on the trending list across all countries except Russia, where it ranked second after people and blogs. This suggests that Entertainment videos are popular among audiences across the globe. Notably, Sports appeared particularly strong in France, Japan, and Mexico, Music in Great Britain, and News and Politics in South Korea. The impact of video category on the success of a YouTube video is further investigated in *Section 6.2*.
 
 ## 3.3 Engagement Rate by Country
 
@@ -325,7 +327,7 @@ p_eng <- youtube_clean %>%
 print(p_eng)
 ```
 
-Mexico, Germany, and France have the highest engagement rates on average, implying that they have the most interactive audiences. Notably, audiences of the United States and Great Britain have lower engagement rates in general, but also show a greater spread. This suggests that while audiences of the two countries tend to interact less with videos relative to other countries, it is also difficult to reach conclusions about or predict viewer behavior due to high levels of variance. Whether engagement levels differ significantly across countries is further investigated in *Section 4.1*.
+Mexico, Germany, and France have the highest engagement rates on average, implying that they have the most interactive audiences. Notably, audiences of the United States and Great Britain have lower engagement rates in general, but also show a greater spread. This suggests that while audiences of the two countries tend to interact less with videos relative to other countries, it is also difficult to reach conclusions about or predict viewer behaviour due to high levels of variance. Whether engagement levels differ significantly across countries is further investigated in *Section 4.1*.
 
 ## 3.4 Days to Trend by Country
 
@@ -428,7 +430,7 @@ cat("\nEffect Size (Eta-squared):", round(eta_squared, 4), "\n")
 cat("Country explains", round(eta_squared * 100, 2), "% of variance in engagement\n")
 ```
 
-A one-way ANOVA was conducted to test whether engagement rates differ across countries. The result is statistically significant (p \< 0.001), indicating that at least one country differs in mean engagement. However, the effect size is small (η² ≈ 0.065), meaning country explains only about 6.5% of the variation. This suggests that while differences exist, geography has limited practical influence on engagement. Since ANOVA only tells us that at least one country differs, we next use Tukey HSD to identify which country pairs differ (*see Appendix 11.2 for complete ANOVA output*).
+A one-way ANOVA was conducted to test whether engagement rates differ across countries. The result is statistically significant (p \< 0.001), indicating that at least one country differs in mean engagement. However, the effect size is small (η² ≈ 0.065), meaning country explains only about 6.5% of the variation. This suggests that while differences exist, geography has limited practical influence on engagement. Since ANOVA only tells us that at least one country differs, we next use Tukey HSD to identify which country pairs differ (*see Appendix 11.3 for complete ANOVA output*).
 
 ## 4.2 Post-hoc Analysis: Pairwise Country Comparisons
 
@@ -447,10 +449,10 @@ kable(tukey_df, digits = 4,
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE, font_size = 8)
 ```
 
-Tukey HSD results show that many country pairs differ significantly. A general pattern emerges: 
+Tukey HSD results show that many country pairs differ significantly. A general pattern emerges:
 
-- Higher engagement: Russia, Mexico, France
-- Lower engagement: India, Japan 
+-   Higher engagement: Russia, Mexico, France
+-   Lower engagement: India, Japan
 
 These differences are consistent but modest, reinforcing that country-level effects are secondary rather than primary drivers of engagement.
 
@@ -709,7 +711,7 @@ m1 <- lm(log_views ~ log_likes + log_comments + days_to_trend + publish_hour,
 summary(m1)
 ```
 
-The first model analyses views and its relationship with log(likes), log(comments,) days to trend and publish hour. Likes and comments have a positive relationship, as expected. While days to trend is also positive, the coefficients are near-zero, which suggests that days to trend has limited impact on a video's success, aligned with earlier findings in *Section 5.2*. For model interpretation, the $p$-value is less than 0.05, which implies that the model is statistically significant. The adjusted R^2^ value indicates that 67% of the data is explained by this model (see *Appendix 11.3 for complete model output*).
+The first model analyses views and its relationship with log(likes), log(comments,) days to trend and publish hour. Likes and comments have a positive relationship, as expected. While days to trend is also positive, the coefficients are near-zero, which suggests that days to trend has limited impact on a video's success, aligned with earlier findings in *Section 5.2*. For model interpretation, the $p$-value is less than 0.05, which implies that the model is statistically significant. The adjusted R^2^ value indicates that 67% of the data is explained by this model (see *Appendix 11.4 for complete model output*).
 
 ## 6.3 Model 2: Base + Category Dummies
 
@@ -723,7 +725,7 @@ summary(m2)
 
 We added categories to the second model. We selected the dummy variable as Entertainment since it performs well across all countries as found in *Section 3.2*, which makes interpretations less variable when comparing globally, compared to other categories.
 
-Generally, most categories do not perform as well as entertainment, as suggested by the negative coefficient estimates. For model interpretation, the $p$-value is also smaller than 0.05, which means this model is also statistically significant. The adjusted R^2^ increased slightly to 69%, showing that categories increases model explanation of variance in the data (see *Appendix 11.4 for complete model output*).
+Generally, most categories do not perform as well as entertainment, as suggested by the negative coefficient estimates. For model interpretation, the $p$-value is also smaller than 0.05, which means this model is also statistically significant. The adjusted R^2^ increased slightly to 69%, showing that categories increases model explanation of variance in the data (see *Appendix 11.5 for complete model output*).
 
 ## 6.4 Model 3: Region-Stratified Regression
 
@@ -738,7 +740,7 @@ m3 <- lapply(unique(reg_df$region), function(r) {
 names(m3) <- unique(reg_df$region)
 ```
 
-Model 3 performs region-stratified regression to examine how predictors affect `log_views` within each country separately (*see* *Appendix 11.5 for complete output on North America region summary*).
+Model 3 performs region-stratified regression to examine how predictors affect `log_views` within each country separately (*see* *Appendix 11.6 for complete output on North America region summary*).
 
 ```{r model3-us-summary, include=FALSE}
 summary(m3[["North America"]])
@@ -805,7 +807,7 @@ Looking at model fit for each region, the best fit is in North America, while th
 anova(m1, m2)
 ```
 
-We also ran an ANOVA comparison between Model 1 and Model 2, to check whether adding category as a predictor explains significantly more variance in log views. The residual sum of squares dropped from 205,515 to 187,740 when category was added, and with an $F$-statistic of 1,107.2 and a $p$-value below 0.001, this reduction is statistically significant. This confirms that including video category meaningfully improves the model's explanatory power beyond engagement metrics alone. (*see Appendix 11.6 for complete ANOVA output*).
+We also ran an ANOVA comparison between Model 1 and Model 2, to check whether adding category as a predictor explains significantly more variance in log views. The residual sum of squares dropped from 205,515 to 187,740 when category was added, and with an $F$-statistic of 1,107.2 and a $p$-value below 0.001, this reduction is statistically significant. This confirms that including video category meaningfully improves the model's explanatory power beyond engagement metrics alone. (*see Appendix 11.7 for complete ANOVA output*).
 
 ## 6.6 Category Coefficient Plot (Model 2)
 
@@ -888,7 +890,7 @@ summary(m_pc8)
 summary(m_pc2)
 ```
 
-We fit two linear regression models, one with all 8 PCs and another with 2 PCs selected in *Section 5* (*see Appendix 11.5 for complete model output*).
+We fit two linear regression models, one with all 8 PCs and another with 2 PCs selected in *Section 5* (*see Appendix 11.8 for complete model output*).
 
 ## 7.3 Model Comparison Table
 
@@ -2063,7 +2065,13 @@ ggplot(test_df, aes(x = residual)) +
   theme(plot.title = element_text(face = "bold"))
 ```
 
-## 11.2 ANOVA Output for *Section 4.1*
+## 11.2 Full Dataset Summary for *Section 2.2*
+
+```{r data-summary-appendix, echo=FALSE}
+summary(youtube_clean)
+```
+
+## 11.3 ANOVA Output for *Section 4.1*
 
 ```{r anova-countries-appendix, echo=FALSE}
 # ANOVA for engagement across countries
@@ -2080,7 +2088,7 @@ cat("\nEffect Size (Eta-squared):", round(eta_squared, 4), "\n")
 cat("Country explains", round(eta_squared * 100, 2), "% of variance in engagement\n")
 ```
 
-## 11.3 Model Output for *Section 6.2*
+## 11.4 Model Output for *Section 6.2*
 
 ```{r model1-appendix, echo=FALSE}
 m1 <- lm(log_views ~ log_likes + log_comments + days_to_trend + publish_hour,
@@ -2089,7 +2097,7 @@ m1 <- lm(log_views ~ log_likes + log_comments + days_to_trend + publish_hour,
 summary(m1)
 ```
 
-## 11.4 Model Output for *Section 6.3*
+## 11.5 Model Output for *Section 6.3*
 
 ```{r model2-appendix, echo=FALSE}
 m2 <- lm(log_views ~ log_likes + log_comments + days_to_trend +
@@ -2099,7 +2107,7 @@ m2 <- lm(log_views ~ log_likes + log_comments + days_to_trend +
 summary(m2)
 ```
 
-## 11.5 Model Output for *Section 6.4*
+## 11.6 Model Output for *Section 6.4*
 
 ```{r model3-appendix, echo=FALSE}
 m3 <- lapply(unique(reg_df$region), function(r) {
@@ -2115,13 +2123,13 @@ names(m3) <- unique(reg_df$region)
 summary(m3[["North America"]])
 ```
 
-## 11.6 ANOVA Output for *Section 6.5*
+## 11.7 ANOVA Output for *Section 6.5*
 
 ```{r anova-m1-m2-appendix, echo=FALSE}
 anova(m1, m2)
 ```
 
-## 11.7 Model Output for *Section 7.2*
+## 11.8 Model Output for *Section 7.2*
 
 ```{r pc-reg-models-appendix, echo=FALSE}
 # Full model: all 8 PCs (lossless rotation — R² = 1 by design)
